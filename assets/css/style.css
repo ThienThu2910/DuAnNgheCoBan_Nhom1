@@ -1,0 +1,272 @@
+:root {
+    --mau-xanh: #1f5d42;
+    --mau-xanh-dam: #153f2e;
+    --mau-vang: #d8a63c;
+    --mau-kem: #fffaf0;
+    --mau-chu: #333333;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    color: var(--mau-chu);
+    background-color: #ffffff;
+}
+
+.navbar-custom {
+    background-color: var(--mau-xanh);
+}
+
+.navbar-custom .navbar-brand,
+.navbar-custom .nav-link {
+    color: #ffffff;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.active {
+    color: #ffd77a;
+}
+
+.hero {
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    color: #ffffff;
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
+        url("../images/banner-ca-mau.jpg") center/cover no-repeat;
+}
+
+.hero h1 {
+    font-size: 48px;
+    font-weight: 700;
+}
+
+.section-title {
+    color: var(--mau-xanh);
+    font-weight: 700;
+}
+
+.btn-main {
+    color: #ffffff;
+    background-color: var(--mau-xanh);
+    border-color: var(--mau-xanh);
+}
+
+.btn-main:hover {
+    color: #ffffff;
+    background-color: var(--mau-xanh-dam);
+}
+
+footer {
+    color: #ffffff;
+    background-color: var(--mau-xanh-dam);
+}
+
+@media (max-width: 768px) {
+    .hero {
+        min-height: 400px;
+        text-align: center;
+    }
+
+    .hero h1 {
+        font-size: 34px;
+    }
+}
+/* Thiết lập chung */
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    overflow-x: hidden;
+    background-color: #ffffff;
+}
+
+img {
+    max-width: 100%;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* Thanh điều hướng */
+.navbar-custom {
+    background-color: #1f6849;
+}
+
+.navbar-custom .navbar-brand {
+    font-weight: 700;
+}
+
+.navbar-custom .nav-link {
+    color: #ffffff;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.active {
+    color: #ffd66b;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Thẻ nội dung */
+.card {
+    word-break: break-word;
+}
+
+.card img {
+    display: block;
+}
+
+/* Biểu mẫu */
+.form-control,
+.form-select {
+    min-height: 44px;
+}
+
+textarea.form-control {
+    min-height: auto;
+}
+
+.btn {
+    white-space: normal;
+}
+
+/* Bảng quản trị */
+.table th,
+.table td {
+    vertical-align: middle;
+}
+
+.table-responsive {
+    border-radius: 8px;
+}
+
+/* Footer */
+footer {
+    width: 100%;
+    color: #ffffff;
+    background-color: #124833;
+}
+
+/* Phân trang */
+.pagination .page-link {
+    color: #198754;
+}
+
+.pagination .page-item.active .page-link {
+    color: #ffffff;
+    background-color: #198754;
+    border-color: #198754;
+}
+
+/* Máy tính bảng */
+@media (max-width: 991px) {
+    .navbar-custom .navbar-collapse {
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+
+    .navbar-custom .nav-item {
+        margin-bottom: 6px;
+    }
+
+    .navbar-custom .btn {
+        display: block;
+        width: 100%;
+        margin-top: 6px;
+        margin-left: 0 !important;
+    }
+
+    .home-section {
+        padding: 55px 0;
+    }
+
+    #specialtyMap {
+        height: 480px;
+    }
+}
+
+/* Điện thoại */
+@media (max-width: 767px) {
+    h1,
+    .display-6 {
+        font-size: 30px;
+    }
+
+    h2 {
+        font-size: 25px;
+    }
+
+    .container {
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+
+    .home-hero {
+        min-height: 460px;
+        text-align: center;
+    }
+
+    .home-hero .d-flex {
+        justify-content: center;
+    }
+
+    .specialty-banner,
+    .facility-banner,
+    .article-banner,
+    .contact-banner {
+        padding: 45px 0;
+    }
+
+    .specialty-image,
+    .facility-image,
+    .article-image,
+    .card-no-image {
+        height: 210px;
+    }
+
+    .detail-image,
+    .detail-no-image {
+        height: 290px;
+    }
+
+    .map-callout {
+        padding: 30px 20px;
+    }
+
+    .table {
+        min-width: 750px;
+    }
+
+    .table .btn {
+        margin-bottom: 4px;
+    }
+}
+
+/* Điện thoại nhỏ */
+@media (max-width: 575px) {
+    .home-hero h1 {
+        font-size: 34px;
+    }
+
+    .home-hero .btn {
+        width: 100%;
+    }
+
+    .card-body {
+        padding: 18px;
+    }
+
+    #specialtyMap {
+        height: 400px;
+    }
+
+    footer {
+        font-size: 14px;
+    }
+}
