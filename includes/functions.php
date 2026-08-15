@@ -34,7 +34,7 @@ function taoSlug(string $chuoi): string
 }
 
 /**
- * Tự động bóc tách Vĩ độ và Kinh độ từ link Google Maps (cả link rút gọn)
+ * Tự động bóc tách Vĩ độ và Kinh độ từ link Google Maps (xử lý cả link rút gọn app.goo.gl)
  */
 function layToaDoTuGoogleMapsUrl(string $url): array
 {
@@ -45,37 +45,52 @@ function layToaDoTuGoogleMapsUrl(string $url): array
         return ['vi_do' => null, 'kinh_do' => null];
     }
 
+    // Xử lý mở rộng link rút gọn maps.app.goo.gl hoặc goo.gl
     if (strpos($url, 'goo.gl') !== false || strpos($url, 'maps.app.goo.gl') !== false) {
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_NOBODY, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_exec($ch);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS      => 10,
+                CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+            ]);
+            $response = curl_exec($ch);
             $fullUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
             curl_close($ch);
 
-            if (!empty($fullUrl)) {
+            if (!empty($fullUrl) && $fullUrl !== $url) {
                 $url = $fullUrl;
+            } elseif (!empty($response) && preg_match('/URL=([^\'"\s>]+)/i', $response, $matches)) {
+                $url = $matches[1];
             }
         }
     }
 
     $url = rawurldecode($url);
 
-    if (preg_match('/@(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/', $url, $matches)) {
+    // 1. Dạng @vĩ_độ,kinh_độ
+    if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
         $viDo = (float)$matches[1];
         $kinhDo = (float)$matches[2];
-    } elseif (preg_match('/!3d(-?[0-9]+\.[0-9]+)!4d(-?[0-9]+\.[0-9]+)/', $url, $matches)) {
-        $viDo = (float)$matches[1];
-        $kinhDo = (float)$matches[2];
-    } elseif (preg_match('/[?&](?:q|query|center)=(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/', $url, $matches)) {
+    } 
+    // 2. Dạng !3d vĩ độ !4d kinh độ
+    elseif (preg_match('/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/', $url, $matches)) {
         $viDo = (float)$matches[1];
         $kinhDo = (float)$matches[2];
     }
+    // 3. Dạng query hoặc center
+    elseif (preg_match('/[?&](?:q|query|center|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
+        $viDo = (float)$matches[1];
+        $kinhDo = (float)$matches[2];
+    }
+
+    // Đảm bảo tọa độ nằm trong khoảng thực tế của Việt Nam (Vĩ độ ~8-24, Kinh độ ~102-110)
+    if ($viDo !== null && ($viDo < -90 || $viDo > 90)) $viDo = null;
+    if ($kinhDo !== null && ($kinhDo < -180 || $kinhDo > 180)) $kinhDo = null;
 
     return ['vi_do' => $viDo, 'kinh_do' => $kinhDo];
 }
@@ -93,5 +108,5 @@ function taoGoogleMapsUrl(array $coSo): string
         return 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($coSo['vi_do'] . ',' . $coSo['kinh_do']);
     }
 
-    return 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($coSo['ten_co_so'] . ', ' . $coSo['dia_chi']);
+    return 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode(($coSo['ten_co_so'] ?? '') . ', ' . ($coSo['dia_chi'] ?? ''));
 }

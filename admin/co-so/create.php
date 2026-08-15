@@ -4,15 +4,28 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../auth.php';    
 require_once __DIR__ . '/../../config/database.php';  
-require_once __DIR__ . '/../../includes/functions.php'; // Đã dùng Helper chung
+require_once __DIR__ . '/../../includes/functions.php';
 
 $loi = [];
 $tenCoSo = ''; $slug = ''; $diaChi = ''; $soDienThoai = ''; $email = '';  
 $moTa = ''; $viDoRaw = ''; $kinhDoRaw = ''; $googleMapsUrl = ''; $trangThai = 1;  
 $dacSanIdsChon = [];
 
-$stmtDacSan = $pdo->query('SELECT id, ten_dac_san FROM dac_san WHERE trang_thai = 1 ORDER BY ten_dac_san ASC');  
-$danhSachDacSan = $stmtDacSan->fetchAll();
+/* Lấy toàn bộ đặc sản kèm danh mục để hiển thị gom nhóm */
+$stmtDacSan = $pdo->query('
+    SELECT ds.id, ds.ten_dac_san, dm.ten_danh_muc 
+    FROM dac_san ds 
+    LEFT JOIN danh_muc dm ON ds.danh_muc_id = dm.id 
+    WHERE ds.trang_thai = 1 
+    ORDER BY dm.ten_danh_muc ASC, ds.ten_dac_san ASC
+');  
+$allDacSan = $stmtDacSan->fetchAll();
+
+$dacSanTheoDanhMuc = [];
+foreach ($allDacSan as $item) {
+    $tenDm = $item['ten_danh_muc'] ?? 'Chưa phân loại';
+    $dacSanTheoDanhMuc[$tenDm][] = $item;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {    
     $tenCoSo = trim($_POST['ten_co_so'] ?? '');    
@@ -25,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $kinhDoRaw = trim($_POST['kinh_do'] ?? '');    
     $googleMapsUrl = trim($_POST['google_maps_url'] ?? '');    
     $trangThai = isset($_POST['trang_thai']) ? 1 : 0;  
-    $dacSanIdsChon = is_array($_POST['dac_san_ids'] ?? null) ? $_POST['dac_san_ids'] : [];
+    $dacSanIdsChon = is_array($_POST['dac_san_ids'] ?? null) ? array_map('intval', $_POST['dac_san_ids']) : [];
 
     if ($tenCoSo === '') $loi[] = 'Vui lòng nhập tên cơ sở.';    
     if ($diaChi === '') $loi[] = 'Vui lòng nhập địa chỉ.';    
@@ -35,7 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $loi[] = 'Địa chỉ email không hợp lệ.';    
     if ($googleMapsUrl !== '' && !filter_var($googleMapsUrl, FILTER_VALIDATE_URL)) $loi[] = 'Đường dẫn Google Maps không hợp lệ.';    
 
-    // Giải mã Google Maps tự động nếu thiếu vĩ độ/kinh độ
     if ($googleMapsUrl !== '' && ($viDoRaw === '' || $kinhDoRaw === '')) {  
         $toaDoTuAuto = layToaDoTuGoogleMapsUrl($googleMapsUrl);  
         if ($viDoRaw === '' && $toaDoTuAuto['vi_do'] !== null) $viDoRaw = (string)$toaDoTuAuto['vi_do'];  
@@ -92,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!empty($dacSanIdsChon) && $coSoId > 0) {  
                 $stmtLienKet = $pdo->prepare('INSERT INTO dac_san_co_so (co_so_id, dac_san_id) VALUES (:co_so_id, :dac_san_id)');  
                 foreach ($dacSanIdsChon as $dsId) {  
-                    if ((int)$dsId > 0) {  
-                        $stmtLienKet->execute(['co_so_id' => $coSoId, 'dac_san_id' => (int)$dsId]);  
+                    if ($dsId > 0) {  
+                        $stmtLienKet->execute(['co_so_id' => $coSoId, 'dac_san_id' => $dsId]);  
                     }  
                 }  
             }
@@ -116,16 +128,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">    
     <title>Thêm cơ sở sản xuất</title>    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>    
         #imagePreview { display: none; width: 100%; max-width: 280px; height: 180px; object-fit: cover; border-radius: 8px; }    
-        .dac-san-checkbox-box { max-height: 220px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; background-color: #fff; }  
+        .dac-san-box { max-height: 250px; overflow-y: auto; background: #fff; border: 1px solid #dee2e6; border-radius: 6px; padding: 12px; }  
     </style>    
 </head>  
 <body class="bg-light">    
     <nav class="navbar navbar-dark bg-success">    
         <div class="container">    
             <a class="navbar-brand fw-bold" href="/dac-san-ca-mau/admin/index.php">Quản trị đặc sản Cà Mau</a>    
-            <a href="/dac-san-ca-mau/logout.php" class="btn btn-outline-light btn-sm">Đăng xuất</a>    
+            <div class="d-flex align-items-center gap-2">
+                <a href="/dac-san-ca-mau/index.php" target="_blank" class="btn btn-light btn-sm fw-semibold">🌐 Xem trang chủ</a>
+                <a href="/dac-san-ca-mau/logout.php" class="btn btn-outline-light btn-sm">Đăng xuất</a>    
+            </div>
         </div>    
     </nav>  
     <main class="container py-5">    
@@ -163,45 +180,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <input type="email" id="email" name="email" class="form-control" value="<?= htmlspecialchars($email) ?>">    
                                 </div>    
                             </div>  
-                            <div class="mb-4">  
-                                <label class="form-label fw-bold text-success">Đặc sản cơ sở cung cấp</label>  
-                                <div class="dac-san-checkbox-box">  
-                                    <?php if (empty($danhSachDacSan)): ?>  
-                                        <p class="text-muted mb-0 small">Chưa có đặc sản nào.</p>  
-                                    <?php else: ?>  
-                                        <div class="row">  
-                                            <?php foreach ($danhSachDacSan as $ds): ?>  
-                                                <div class="col-md-6">  
-                                                    <div class="form-check mb-2">  
-                                                        <input class="form-check-input" type="checkbox" name="dac_san_ids[]" id="ds_<?= (int)$ds['id'] ?>" value="<?= (int)$ds['id'] ?>" <?= in_array((int)$ds['id'], array_map('intval', $dacSanIdsChon)) ? 'checked' : '' ?>>  
-                                                        <label class="form-check-label" for="ds_<?= (int)$ds['id'] ?>"><?= htmlspecialchars($ds['ten_dac_san']) ?></label>  
-                                                    </div>  
-                                                </div>  
-                                            <?php endforeach; ?>  
-                                        </div>  
-                                    <?php endif; ?>  
-                                </div>  
-                            </div>
                             <div class="mb-3">    
                                 <label for="mo_ta" class="form-label">Mô tả</label>    
                                 <textarea id="mo_ta" name="mo_ta" class="form-control" rows="4"><?= htmlspecialchars($moTa) ?></textarea>    
                             </div>  
-                            <h2 class="h5 text-success mt-4">Thông tin vị trí</h2>  
+
+                            <!-- Phần liên kết đặc sản gom theo danh mục -->
+                            <div class="mb-4">  
+                                <label class="form-label fw-bold text-success">Đặc sản cơ sở cung cấp / kinh doanh:</label>  
+                                <div class="dac-san-box">  
+                                    <?php if (empty($dacSanTheoDanhMuc)): ?>  
+                                        <p class="text-muted mb-0 small">Chưa có đặc sản nào.</p>  
+                                    <?php else: ?>  
+                                        <?php foreach ($dacSanTheoDanhMuc as $tenDanhMuc => $dsList): ?>
+                                            <div class="mb-2">
+                                                <strong class="d-block text-primary small mb-1 border-bottom pb-1"><?= htmlspecialchars($tenDanhMuc) ?></strong>
+                                                <div class="row">
+                                                    <?php foreach ($dsList as $ds): ?>
+                                                        <div class="col-md-6">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" name="dac_san_ids[]" id="ds_<?= (int)$ds['id'] ?>" value="<?= (int)$ds['id'] ?>" <?= in_array((int)$ds['id'], $dacSanIdsChon, true) ? 'checked' : '' ?>>
+                                                                <label class="form-check-label small" for="ds_<?= (int)$ds['id'] ?>"><?= htmlspecialchars($ds['ten_dac_san']) ?></label>
+                                                            </div>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>  
+                                </div>  
+                                <div class="form-text">Tích chọn các đặc sản mà cơ sở này sản xuất hoặc phân phối.</div>
+                            </div>
+
+                            <h2 class="h5 text-success mt-4">Thông tin vị trí & Bản đồ</h2>  
                             <div class="mb-3">    
                                 <label for="google_maps_url" class="form-label">Đường dẫn Google Maps</label>    
                                 <input type="url" id="google_maps_url" name="google_maps_url" class="form-control" value="<?= htmlspecialchars($googleMapsUrl) ?>" placeholder="Dán link Google Maps tại đây...">    
                             </div>  
-                            <div class="row">    
-                                <div class="col-md-6 mb-3">    
+                            <div class="row mb-3">    
+                                <div class="col-md-6">    
                                     <label for="vi_do" class="form-label">Vĩ độ (Latitude)</label>    
                                     <input type="number" step="any" id="vi_do" name="vi_do" class="form-control" value="<?= htmlspecialchars($viDoRaw) ?>">    
                                 </div>    
-                                <div class="col-md-6 mb-3">    
+                                <div class="col-md-6">    
                                     <label for="kinh_do" class="form-label">Kinh độ (Longitude)</label>    
                                     <input type="number" step="any" id="kinh_do" name="kinh_do" class="form-control" value="<?= htmlspecialchars($kinhDoRaw) ?>">    
                                 </div>    
-                            </div>    
+                            </div>
+
+                            <!-- Bản đồ chọn vị trí trực quan -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-success">Chọn vị trí trực tiếp trên bản đồ:</label>
+                                <div id="admin-map" style="height: 300px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6;"></div>
+                                <div class="form-text">Nhấp vào vị trí bất kỳ trên bản đồ hoặc kéo thả ghim để tự động lấy tọa độ.</div>
+                            </div>
                         </div>  
+
                         <div class="col-lg-4">    
                             <div class="mb-3">    
                                 <label for="hinh_anh" class="form-label">Hình ảnh cơ sở</label>    
@@ -219,6 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>    
         </div>    
     </main>  
+
     <script>    
         const imageInput = document.getElementById('hinh_anh');    
         const imagePreview = document.getElementById('imagePreview');  
@@ -232,6 +267,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const googleMapsInput = document.getElementById('google_maps_url');  
         const viDoInput = document.getElementById('vi_do');  
         const kinhDoInput = document.getElementById('kinh_do');
+
+        let defaultLat = parseFloat(viDoInput.value) || 9.1768;
+        let defaultLng = parseFloat(kinhDoInput.value) || 105.1524;
+        let hasLocation = viDoInput.value !== '' && kinhDoInput.value !== '';
+
+        const adminMap = L.map('admin-map').setView([defaultLat, defaultLng], hasLocation ? 14 : 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(adminMap);
+
+        let marker;
+        function updateMarker(lat, lng) {
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng], { draggable: true }).addTo(adminMap);
+                marker.on('dragend', function (e) {
+                    const pos = e.target.getLatLng();
+                    viDoInput.value = pos.lat.toFixed(7);
+                    kinhDoInput.value = pos.lng.toFixed(7);
+                });
+            }
+            adminMap.setView([lat, lng], 14);
+        }
+
+        if (hasLocation) {
+            updateMarker(defaultLat, defaultLng);
+        }
+
+        adminMap.on('click', function (e) {
+            viDoInput.value = e.latlng.lat.toFixed(7);
+            kinhDoInput.value = e.latlng.lng.toFixed(7);
+            updateMarker(e.latlng.lat, e.latlng.lng);
+        });
+
         if (googleMapsInput) {  
             googleMapsInput.addEventListener('input', function () {  
                 let url = decodeURIComponent(this.value.trim());  
@@ -241,11 +309,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 let matchQuery = url.match(/[?&](?:q|query|center)=(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/);
                 let res = matchAt || match3d || matchQuery;  
                 if (res && res[1] && res[2]) {  
-                    if (viDoInput) viDoInput.value = res[1];  
-                    if (kinhDoInput) kinhDoInput.value = res[2];  
+                    viDoInput.value = res[1];  
+                    kinhDoInput.value = res[2];
+                    updateMarker(parseFloat(res[1]), parseFloat(res[2]));  
                 }  
             });  
-        }  
+        }
+
+        setTimeout(() => adminMap.invalidateSize(), 200);
     </script>    
 </body>    
 </html>

@@ -14,9 +14,7 @@ if (!$id) {
     exit;    
 }
 
-/*    
- * Lấy thông tin chi tiết đặc sản.    
- */    
+/* Lấy thông tin chi tiết đặc sản */    
 $stmt = $pdo->prepare(    
     'SELECT    
         ds.id,    
@@ -67,9 +65,12 @@ if (!$dacSan) {
 
 $pageTitle = $dacSan['ten_dac_san'] . ' - Đặc sản Cà Mau';
 
-/*    
- * Lấy các cơ sở có đặc sản này.    
- */    
+/* Lấy thư viện ảnh phụ (Gallery) */
+$stmtGallery = $pdo->prepare('SELECT duong_dan, mo_ta FROM hinh_anh_dac_san WHERE dac_san_id = :id ORDER BY thu_tu ASC');
+$stmtGallery->execute(['id' => $id]);
+$galleryAnh = $stmtGallery->fetchAll();
+
+/* Lấy các cơ sở có đặc sản này */    
 $stmtCoSo = $pdo->prepare(    
     'SELECT    
         cs.id,    
@@ -94,9 +95,7 @@ $stmtCoSo = $pdo->prepare(
 $stmtCoSo->execute(['dac_san_id' => $id]);
 $danhSachCoSo = $stmtCoSo->fetchAll();
 
-/*    
- * Lấy tối đa 3 đặc sản liên quan cùng danh mục.    
- */    
+/* Lấy tối đa 3 đặc sản liên quan cùng danh mục */    
 if (!empty($dacSan['danh_muc_id'])) {    
     $stmtLienQuan = $pdo->prepare(    
         'SELECT id, ten_dac_san, mo_ta_ngan, hinh_anh    
@@ -126,115 +125,25 @@ require_once __DIR__ . '/includes/navbar.php';
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>    
-    .detail-banner {    
-        padding: 28px 0;    
-        background-color: #f4f8f5;    
-        border-bottom: 1px solid #e2e8e4;    
-    }
+    .detail-banner { padding: 28px 0; background-color: #f4f8f5; border-bottom: 1px solid #e2e8e4; }
+    .detail-image { width: 100%; height: 420px; object-fit: cover; border-radius: 14px; }
+    .detail-no-image { width: 100%; height: 420px; display: flex; align-items: center; justify-content: center; border-radius: 14px; color: #6c757d; background-color: #e9ecef; }
+    .information-box { height: 100%; padding: 24px; border-radius: 12px; background-color: #f8faf8; border-left: 5px solid #198754; }
+    .related-card { overflow: hidden; border: 0; border-radius: 12px; }
+    .related-image, .related-no-image { width: 100%; height: 190px; object-fit: cover; }
+    .related-no-image { display: flex; align-items: center; justify-content: center; color: #6c757d; background-color: #e9ecef; }
+    .content-text { line-height: 1.8; white-space: normal; }
 
-    .detail-image {    
-        width: 100%;    
-        height: 450px;    
-        object-fit: cover;    
-        border-radius: 14px;    
-    }
+    #detail-map { height: 480px; width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+    .facility-scroll-container { max-height: 480px; overflow-y: auto; padding: 6px 8px 6px 6px; }
+    .facility-select-card { cursor: pointer; border: 2px solid #e9ecef; border-radius: 12px; transition: all 0.2s ease-in-out; }
+    .facility-select-card:hover { border-color: #198754; background-color: #f4f8f5; transform: translateY(-2px); }
+    .facility-select-card.active-facility { border-color: #198754; background-color: #e8f5e9; box-shadow: 0 4px 10px rgba(25, 135, 84, 0.15); position: relative; z-index: 2; }
+    .gallery-thumb { width: 75px; height: 55px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+    .gallery-thumb:hover { opacity: 0.85; }
 
-    .detail-no-image {    
-        width: 100%;    
-        height: 450px;    
-        display: flex;    
-        align-items: center;    
-        justify-content: center;    
-        border-radius: 14px;    
-        color: #6c757d;    
-        background-color: #e9ecef;    
-    }
-
-    .information-box {    
-        height: 100%;    
-        padding: 24px;    
-        border-radius: 12px;    
-        background-color: #f8faf8;    
-        border-left: 5px solid #198754;    
-    }
-
-    .related-card {    
-        overflow: hidden;    
-        border: 0;    
-        border-radius: 12px;    
-    }
-
-    .related-image,    
-    .related-no-image {    
-        width: 100%;    
-        height: 190px;    
-        object-fit: cover;    
-    }
-
-    .related-no-image {    
-        display: flex;    
-        align-items: center;    
-        justify-content: center;    
-        color: #6c757d;    
-        background-color: #e9ecef;    
-    }
-
-    .content-text {    
-        line-height: 1.8;    
-        white-space: normal;    
-    }
-
-    /* Bản đồ & Thẻ danh sách */  
-    #detail-map {  
-        height: 480px;  
-        width: 100%;  
-        border-radius: 12px;  
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);  
-    }
-
-    .facility-scroll-container {  
-        max-height: 480px;  
-        overflow-y: auto;  
-        padding: 6px 8px 6px 6px; 
-    }
-
-    .facility-select-card {  
-        cursor: pointer;  
-        border: 2px solid #e9ecef;  
-        border-radius: 12px;  
-        transition: all 0.2s ease-in-out;  
-    }
-
-    .facility-select-card:hover {  
-        border-color: #198754;  
-        background-color: #f4f8f5;  
-        transform: translateY(-2px);  
-    }
-
-    .facility-select-card.active-facility {  
-        border-color: #198754;  
-        background-color: #e8f5e9;  
-        box-shadow: 0 4px 10px rgba(25, 135, 84, 0.15);  
-        position: relative;
-        z-index: 2;
-    }
-
-    /* CSS Phóng to toàn màn hình */
-    .map-fullscreen {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        z-index: 9999 !important;
-        border-radius: 0 !important;
-    }
-
-    @media (max-width: 768px) {    
-        .detail-image, .detail-no-image { height: 300px; }    
-        #detail-map { height: 350px; }  
-        .facility-scroll-container { max-height: none; }  
-    }    
+    .map-fullscreen { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 9999 !important; border-radius: 0 !important; }
+    @media (max-width: 768px) { .detail-image, .detail-no-image { height: 300px; } #detail-map { height: 350px; } .facility-scroll-container { max-height: none; } }
 </style>
 
 <section class="detail-banner">    
@@ -254,10 +163,22 @@ require_once __DIR__ . '/includes/navbar.php';
     <section class="row g-5 align-items-start">    
         <div class="col-lg-6">    
             <?php if (!empty($dacSan['hinh_anh'])): ?>    
-                <img src="/dac-san-ca-mau/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" alt="<?= htmlspecialchars($dacSan['ten_dac_san']) ?>" class="detail-image shadow-sm">    
+                <img id="main-product-image" src="/dac-san-ca-mau/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" alt="<?= htmlspecialchars($dacSan['ten_dac_san']) ?>" class="detail-image shadow-sm mb-3">    
             <?php else: ?>    
-                <div class="detail-no-image">Chưa có hình ảnh</div>    
-            <?php endif; ?>    
+                <div class="detail-no-image mb-3">Chưa có hình ảnh</div>    
+            <?php endif; ?>
+
+            <!-- Thư viện ảnh nhỏ (Gallery) -->
+            <?php if (!empty($galleryAnh)): ?>
+                <div class="d-flex gap-2 overflow-auto pb-2">
+                    <?php if (!empty($dacSan['hinh_anh'])): ?>
+                        <img src="/dac-san-ca-mau/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" class="gallery-thumb" onclick="changeMainImage(this)" style="border-color: #198754;">
+                    <?php endif; ?>
+                    <?php foreach ($galleryAnh as $img): ?>
+                        <img src="/dac-san-ca-mau/assets/uploads/dac-san/<?= htmlspecialchars($img['duong_dan']) ?>" class="gallery-thumb" onclick="changeMainImage(this)">
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
 
         <div class="col-lg-6">    
@@ -299,8 +220,12 @@ require_once __DIR__ . '/includes/navbar.php';
                 <div class="col-lg-5">  
                     <div class="facility-scroll-container">  
                         <?php foreach ($danhSachCoSo as $index => $coSo): ?>  
-                            <?php $coViTri = ($coSo['vi_do'] !== null && $coSo['kinh_do'] !== null && $coSo['vi_do'] !== '' && $coSo['kinh_do'] !== ''); ?>  
-                            <div class="card facility-select-card mb-3 p-3 <?= $index === 0 && $coViTri ? 'active-facility' : '' ?>" id="facility-card-<?= (int)$coSo['id'] ?>" <?php if ($coViTri): ?> onclick="chonCoSoOnMap(<?= (int)$coSo['id'] ?>, <?= (float)$coSo['vi_do'] ?>, <?= (float)$coSo['kinh_do'] ?>)" <?php endif; ?>>  
+                            <?php 
+                                $viDo = filter_var($coSo['vi_do'], FILTER_VALIDATE_FLOAT);
+                                $kinhDo = filter_var($coSo['kinh_do'], FILTER_VALIDATE_FLOAT);
+                                $coViTri = ($viDo !== false && $kinhDo !== false && $viDo >= -90 && $viDo <= 90 && $kinhDo >= -180 && $kinhDo <= 180); 
+                            ?>  
+                            <div class="card facility-select-card mb-3 p-3" id="facility-card-<?= (int)$coSo['id'] ?>" <?php if ($coViTri): ?> onclick="chonCoSoOnMap(<?= (int)$coSo['id'] ?>, <?= (float)$viDo ?>, <?= (float)$kinhDo ?>)" <?php endif; ?>>  
                                 <div class="d-flex justify-content-between align-items-start mb-2">  
                                     <h3 class="h6 fw-bold text-success mb-0"><?= htmlspecialchars($coSo['ten_co_so']) ?></h3>  
                                     <span class="badge <?= $coViTri ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border' ?>">
@@ -314,7 +239,10 @@ require_once __DIR__ . '/includes/navbar.php';
 
                                 <div class="d-flex gap-2 mt-2 pt-1 border-top">  
                                     <?php if ($coViTri): ?>  
-                                        <button type="button" class="btn btn-sm btn-success flex-grow-1">Xem trên bản đồ</button>  
+                                        <button type="button" class="btn btn-sm btn-success flex-grow-1" onclick="chonCoSoOnMap(<?= (int)$coSo['id'] ?>, <?= (float)$viDo ?>, <?= (float)$kinhDo ?>)">Xem bản đồ</button>  
+                                        <a href="https://www.google.com/maps/dir/?api=1&destination=<?= $viDo ?>,<?= $kinhDo ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                                            🧭 Chỉ đường
+                                        </a>
                                     <?php endif; ?>  
                                     <a href="<?= htmlspecialchars(taoGoogleMapsUrl($coSo)) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();">Google Maps</a>  
                                 </div>  
@@ -364,10 +292,16 @@ require_once __DIR__ . '/includes/navbar.php';
     <?php endif; ?>    
 </main>
 
-<!-- SCRIPT TƯƠNG TÁC CHỌN CƠ SỞ & BẢN ĐỒ -->  
 <script>  
 var map;  
 var markersMap = {};
+
+function changeMainImage(el) {
+    const mainImg = document.getElementById('main-product-image');
+    if (mainImg) mainImg.src = el.src;
+    document.querySelectorAll('.gallery-thumb').forEach(thumb => thumb.style.borderColor = 'transparent');
+    el.style.borderColor = '#198754';
+}
 
 function chonCoSoOnMap(id, lat, lng) {  
     document.querySelectorAll('.facility-select-card').forEach(function(card) {  
@@ -387,29 +321,30 @@ function chonCoSoOnMap(id, lat, lng) {
 
 document.addEventListener("DOMContentLoaded", function() {  
     var coSoList = <?= json_encode($danhSachCoSo, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;  
-    var validLocations = coSoList.filter(function(item) {  
-        return item.vi_do !== null && item.kinh_do !== null && item.vi_do !== '' && item.kinh_do !== '';  
+    
+    var validLocations = coSoList.filter(function(item) {
+        var lat = parseFloat(item.vi_do);
+        var lng = parseFloat(item.kinh_do);
+        return !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && (lat !== 0 || lng !== 0);
     });
 
     var mapElement = document.getElementById('detail-map');  
     if (!mapElement) return;
 
     if (validLocations.length === 0) {  
-        mapElement.innerHTML = '<div class="p-4 text-center text-muted">Chưa có thông tin tọa độ bản đồ cho các cơ sở này.</div>';  
+        mapElement.innerHTML = '<div class="p-4 text-center text-muted">Chưa có thông tin tọa độ bản đồ hợp lệ cho các cơ sở này.</div>';  
         return;  
     }
 
-    // Khởi tạo bản đồ
-    map = L.map('detail-map');  
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {  
-        attribution: '&copy; OpenStreetMap'  
-    }).addTo(map);
+    var firstLat = parseFloat(validLocations[0].vi_do);
+    var firstLng = parseFloat(validLocations[0].kinh_do);
 
-    var bounds = [];  
+    map = L.map('detail-map').setView([firstLat, firstLng], 13);  
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+
     validLocations.forEach(function(item) {  
         var lat = parseFloat(item.vi_do);  
         var lng = parseFloat(item.kinh_do);  
-        bounds.push([lat, lng]);
 
         var popupContent = `  
             <div style="max-width: 220px;">  
@@ -424,18 +359,12 @@ document.addEventListener("DOMContentLoaded", function() {
         marker.on('click', function() { chonCoSoOnMap(item.id, lat, lng); });  
     });
 
-    // Mặc định chọn cơ sở đầu tiên
-    if (validLocations.length > 0) {  
-        var firstItem = validLocations[0];  
-        chonCoSoOnMap(firstItem.id, parseFloat(firstItem.vi_do), parseFloat(firstItem.kinh_do));  
-    }  
+    chonCoSoOnMap(validLocations[0].id, firstLat, firstLng);  
 
-    // Cập nhật kích thước bản đồ sau khi load
     setTimeout(function() {
         if (map) map.invalidateSize();
     }, 200);
 
-    // Bật/tắt Fullscreen cho bản đồ
     const btnFullscreen = document.getElementById('btn-toggle-fullscreen');
     if (btnFullscreen && mapElement) {
         btnFullscreen.addEventListener('click', function () {
