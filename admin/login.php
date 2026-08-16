@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </form>
 
                         <a
-                            href="/dac-san-ca-mau/"
+                            href="/DuAnNgheCoBan_Nhom1/"
                             class="btn btn-link w-100 mt-2"
                         >
                             Quay về trang chủ

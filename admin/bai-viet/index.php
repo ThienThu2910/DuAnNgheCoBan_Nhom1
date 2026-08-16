@@ -91,7 +91,7 @@ $danhSachBaiViet = $stmt->fetchAll();
         <div class="container">
             <a
                 class="navbar-brand fw-bold"
-                href="/dac-san-ca-mau/admin/index.php"
+                href="/DuAnNgheCoBan_Nhom1/admin/index.php"
             >
                 Quản trị đặc sản Cà Mau
             </a>
@@ -104,7 +104,7 @@ $danhSachBaiViet = $stmt->fetchAll();
                 </span>
 
                 <a
-                    href="/dac-san-ca-mau/logout.php"
+                    href="/DuAnNgheCoBan_Nhom1/logout.php"
                     class="btn btn-outline-light btn-sm"
                 >
                     Đăng xuất
@@ -257,7 +257,7 @@ $danhSachBaiViet = $stmt->fetchAll();
                                         <td>
                                             <?php if (!empty($baiViet['hinh_anh'])): ?>
                                                 <img
-                                                    src="/dac-san-ca-mau/assets/uploads/bai-viet/<?= htmlspecialchars(
+                                                    src="/DuAnNgheCoBan_Nhom1/assets/uploads/bai-viet/<?= htmlspecialchars(
                                                         $baiViet['hinh_anh']
                                                     ) ?>"
                                                     alt="<?= htmlspecialchars(
@@ -363,7 +363,7 @@ $danhSachBaiViet = $stmt->fetchAll();
         </div>
 
         <a
-            href="/dac-san-ca-mau/admin/index.php"
+            href="/DuAnNgheCoBan_Nhom1/admin/index.php"
             class="btn btn-secondary mt-4"
         >
             Quay lại trang quản trị

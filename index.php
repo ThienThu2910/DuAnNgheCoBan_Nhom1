@@ -6,6 +6,7 @@ require_once __DIR__ . '/config/database.php';
 
 $pageTitle = 'Đặc sản Cà Mau - Tinh hoa vùng đất cực Nam';
 $currentPage = 'trang-chu';
+$baseUrl = '/DuAnNgheCoBan_Nhom1';
 
 /*
  * Lấy 6 đặc sản nổi bật.
@@ -119,117 +120,7 @@ require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 ?>
 
-<style>
-    .home-hero {
-        min-height: 590px;
-        display: flex;
-        align-items: center;
-        color: #ffffff;
-        background:
-            linear-gradient(
-                rgba(8, 50, 35, 0.68),
-                rgba(8, 50, 35, 0.74)
-            ),
-            url("/dac-san-ca-mau/assets/images/banner-ca-mau.jpg")
-            center / cover no-repeat;
-    }
 
-    .home-hero h1 {
-        max-width: 850px;
-        font-size: clamp(38px, 6vw, 68px);
-        font-weight: 750;
-    }
-
-    .home-hero p {
-        max-width: 720px;
-    }
-
-    .home-section {
-        padding: 75px 0;
-    }
-
-    .home-section-light {
-        background-color: #f5f8f6;
-    }
-
-    .home-title {
-        color: #185a40;
-        font-weight: 700;
-    }
-
-    .specialty-card,
-    .facility-card,
-    .article-card {
-        overflow: hidden;
-        border: 0;
-        border-radius: 14px;
-        transition:
-            transform 0.25s ease,
-            box-shadow 0.25s ease;
-    }
-
-    .specialty-card:hover,
-    .facility-card:hover,
-    .article-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
-    }
-
-    .specialty-image,
-    .facility-image,
-    .article-image,
-    .card-no-image {
-        width: 100%;
-        height: 230px;
-        object-fit: cover;
-    }
-
-    .card-no-image {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #6c757d;
-        background-color: #e9ecef;
-    }
-
-    .limited-text {
-        display: -webkit-box;
-        min-height: 72px;
-        overflow: hidden;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 3;
-    }
-
-    .map-callout {
-        padding: 55px;
-        overflow: hidden;
-        color: #ffffff;
-        border-radius: 18px;
-        background:
-            linear-gradient(
-                120deg,
-                rgba(19, 84, 58, 0.96),
-                rgba(30, 114, 76, 0.91)
-            );
-    }
-
-    @media (max-width: 768px) {
-        .home-hero {
-            min-height: 500px;
-            text-align: center;
-        }
-
-        .home-hero p {
-            margin-right: auto;
-            margin-left: auto;
-        }
-
-        .map-callout {
-            padding: 35px 25px;
-            text-align: center;
-        }
-    }
-</style>
 
 <!-- Banner chính -->
 <section class="home-hero">
@@ -249,14 +140,14 @@ require_once __DIR__ . '/includes/navbar.php';
 
         <div class="d-flex flex-wrap gap-3 mt-4 justify-content-md-start justify-content-center">
             <a
-                href="/dac-san-ca-mau/dac-san.php"
+                href="<?= $baseUrl ?>/dac-san.php"
                 class="btn btn-warning btn-lg"
             >
                 Khám phá đặc sản
             </a>
 
             <a
-                href="/dac-san-ca-mau/ban-do.php"
+                href="<?= $baseUrl ?>/ban-do.php"
                 class="btn btn-outline-light btn-lg"
             >
                 Xem bản đồ
@@ -310,7 +201,7 @@ require_once __DIR__ . '/includes/navbar.php';
             </div>
 
             <a
-                href="/dac-san-ca-mau/dac-san.php"
+                href="<?= $baseUrl ?>/dac-san.php"
                 class="btn btn-outline-success"
             >
                 Xem tất cả đặc sản
@@ -329,7 +220,7 @@ require_once __DIR__ . '/includes/navbar.php';
                             <div class="position-relative">
                                 <?php if (!empty($dacSan['hinh_anh'])): ?>
                                     <img
-                                        src="/dac-san-ca-mau/assets/uploads/dac-san/<?= htmlspecialchars(
+                                        src="<?= $baseUrl ?>/assets/uploads/dac-san/<?= htmlspecialchars(
                                             $dacSan['hinh_anh']
                                         ) ?>"
                                         alt="<?= htmlspecialchars(
@@ -379,7 +270,7 @@ require_once __DIR__ . '/includes/navbar.php';
                                 </p>
 
                                 <a
-                                    href="/dac-san-ca-mau/chi-tiet-dac-san.php?id=<?= (int) $dacSan['id'] ?>"
+                                    href="<?= $baseUrl ?>/chi-tiet-dac-san.php?id=<?= (int) $dacSan['id'] ?>"
                                     class="btn btn-success mt-auto"
                                 >
                                     Xem chi tiết
@@ -415,7 +306,7 @@ require_once __DIR__ . '/includes/navbar.php';
 
                 <div class="col-lg-4 text-lg-end">
                     <a
-                        href="/dac-san-ca-mau/ban-do.php"
+                        href="<?= $baseUrl ?>/ban-do.php"
                         class="btn btn-warning btn-lg"
                     >
                         Mở bản đồ đặc sản
@@ -444,7 +335,7 @@ require_once __DIR__ . '/includes/navbar.php';
             </div>
 
             <a
-                href="/dac-san-ca-mau/co-so-san-xuat.php"
+                href="<?= $baseUrl ?>/co-so-san-xuat.php"
                 class="btn btn-outline-success"
             >
                 Xem tất cả cơ sở
@@ -462,7 +353,7 @@ require_once __DIR__ . '/includes/navbar.php';
                         <div class="card facility-card h-100 shadow-sm">
                             <?php if (!empty($coSo['hinh_anh'])): ?>
                                 <img
-                                    src="/dac-san-ca-mau/assets/uploads/co-so/<?= htmlspecialchars(
+                                    src="<?= $baseUrl ?>/assets/uploads/co-so/<?= htmlspecialchars(
                                         $coSo['hinh_anh']
                                     ) ?>"
                                     alt="<?= htmlspecialchars(
@@ -538,7 +429,7 @@ require_once __DIR__ . '/includes/navbar.php';
             </div>
 
             <a
-                href="/dac-san-ca-mau/bai-viet.php"
+                href="<?= $baseUrl ?>/bai-viet.php"
                 class="btn btn-outline-success"
             >
                 Xem tất cả bài viết
@@ -556,7 +447,7 @@ require_once __DIR__ . '/includes/navbar.php';
                         <article class="card article-card h-100 shadow-sm">
                             <?php if (!empty($baiViet['hinh_anh'])): ?>
                                 <img
-                                    src="/dac-san-ca-mau/assets/uploads/bai-viet/<?= htmlspecialchars(
+                                    src="<?= $baseUrl ?>/assets/uploads/bai-viet/<?= htmlspecialchars(
                                         $baiViet['hinh_anh']
                                     ) ?>"
                                     alt="<?= htmlspecialchars(
@@ -596,7 +487,7 @@ require_once __DIR__ . '/includes/navbar.php';
                                 </p>
 
                                 <a
-                                    href="/dac-san-ca-mau/chi-tiet-bai-viet.php?id=<?= (int) $baiViet['id'] ?>"
+                                    href="<?= $baseUrl ?>/chi-tiet-bai-viet.php?id=<?= (int) $baiViet['id'] ?>"
                                     class="btn btn-outline-success mt-auto"
                                 >
                                     Đọc bài viết

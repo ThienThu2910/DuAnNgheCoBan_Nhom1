@@ -283,9 +283,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-light">  
     <nav class="navbar navbar-dark bg-success">  
         <div class="container">  
-            <a class="navbar-brand fw-bold" href="/dac-san-ca-mau/admin/index.php">Quản trị đặc sản Cà Mau</a>  
+            <a class="navbar-brand fw-bold" href="/DuAnNgheCoBan_Nhom1/admin/index.php">Quản trị đặc sản Cà Mau</a>  
             <div class="d-flex align-items-center gap-2">
-                <a href="/dac-san-ca-mau/logout.php" class="btn btn-outline-light btn-sm">Đăng xuất</a>  
+                <a href="/DuAnNgheCoBan_Nhom1/logout.php" class="btn btn-outline-light btn-sm">Đăng xuất</a>  
             </div>
         </div>  
     </nav>  
@@ -390,7 +390,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="mb-3">  
                                     <label class="form-label">Hình ảnh hiện tại</label>  
                                     <div>  
-                                        <img src="/dac-san-ca-mau/assets/uploads/dac-san/<?= htmlspecialchars($hinhAnhCu) ?>" alt="<?= htmlspecialchars($tenDacSan) ?>" class="current-image">  
+                                        <img src="/DuAnNgheCoBan_Nhom1/assets/uploads/dac-san/<?= htmlspecialchars($hinhAnhCu) ?>" alt="<?= htmlspecialchars($tenDacSan) ?>" class="current-image">  
                                     </div>  
                                 </div>  
                             <?php endif; ?>  

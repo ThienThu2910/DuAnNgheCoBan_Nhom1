@@ -46,10 +46,10 @@ $danhSachCoSo = $stmt->fetchAll();
 <body class="bg-light">    
     <nav class="navbar navbar-dark bg-success">    
         <div class="container">    
-            <a class="navbar-brand fw-bold" href="/dac-san-ca-mau/admin/index.php">Quản trị đặc sản Cà Mau</a>    
+            <a class="navbar-brand fw-bold" href="/DuAnNgheCoBan_Nhom1/admin/index.php">Quản trị đặc sản Cà Mau</a>    
             <div>
                 <span class="text-white me-3"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin') ?></span>    
-                <a href="/dac-san-ca-mau/logout.php" class="btn btn-outline-light btn-sm">Đăng xuất</a>    
+                <a href="/DuAnNgheCoBan_Nhom1/logout.php" class="btn btn-outline-light btn-sm">Đăng xuất</a>    
             </div>    
         </div>    
     </nav>  
@@ -104,7 +104,7 @@ $danhSachCoSo = $stmt->fetchAll();
                                         <td><?= $index + 1 ?></td>    
                                         <td>    
                                             <?php if (!empty($coSo['hinh_anh'])): ?><!---->
-                                                <img src="/dac-san-ca-mau/assets/uploads/co-so/<?= htmlspecialchars($coSo['hinh_anh']) ?>" class="facility-image">    
+                                                <img src="/DuAnNgheCoBan_Nhom1/assets/uploads/co-so/<?= htmlspecialchars($coSo['hinh_anh']) ?>" class="facility-image">    
                                             <?php else: ?><!---->
                                                 <div class="no-image">Chưa có ảnh</div>    
                                             <?php endif; ?>    
@@ -137,7 +137,7 @@ $danhSachCoSo = $stmt->fetchAll();
                 </div>    
             </div>    
         </div>    
-        <a href="/dac-san-ca-mau/admin/index.php" class="btn btn-secondary mt-4">Quay lại trang quản trị</a>    
+        <a href="/DuAnNgheCoBan_Nhom1/admin/index.php" class="btn btn-secondary mt-4">Quay lại trang quản trị</a>    
     </main>  
 
     <!-- Modal Xác Nhận Xóa -->  

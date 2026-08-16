@@ -8,5 +8,5 @@ $_SESSION = [];
 
 session_destroy();
 
-header('Location: /dac-san-ca-mau/');
+header('Location: /DuAnNgheCoBan_Nhom1/');
 exit;

@@ -106,7 +106,7 @@ $danhSachDanhMuc = $stmtDanhMuc->fetchAll();
         <div class="container">
             <a
                 class="navbar-brand fw-bold"
-                href="/dac-san-ca-mau/admin/index.php"
+                href="/DuAnNgheCoBan_Nhom1/admin/index.php"
             >
                 Quản trị đặc sản Cà Mau
             </a>
@@ -117,7 +117,7 @@ $danhSachDanhMuc = $stmtDanhMuc->fetchAll();
                 </span>
 
                 <a
-                    href="/dac-san-ca-mau/logout.php"
+                    href="/DuAnNgheCoBan_Nhom1/logout.php"
                     class="btn btn-outline-light btn-sm"
                 >
                     Đăng xuất
@@ -255,7 +255,7 @@ $danhSachDanhMuc = $stmtDanhMuc->fetchAll();
                                         <td>
                                             <?php if (!empty($dacSan['hinh_anh'])): ?>
                                                 <img
-                                                    src="/dac-san-ca-mau/assets/uploads/dac-san/<?= htmlspecialchars(
+                                                    src="/DuAnNgheCoBan_Nhom1/assets/uploads/dac-san/<?= htmlspecialchars(
                                                         $dacSan['hinh_anh']
                                                     ) ?>"
                                                     alt="<?= htmlspecialchars(
@@ -360,7 +360,7 @@ $danhSachDanhMuc = $stmtDanhMuc->fetchAll();
         </div>
 
         <a
-            href="/dac-san-ca-mau/admin/index.php"
+            href="/DuAnNgheCoBan_Nhom1/admin/index.php"
             class="btn btn-secondary mt-4"
         >
             Quay lại trang quản trị

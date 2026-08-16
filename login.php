@@ -8,12 +8,12 @@ require_once __DIR__ . '/config/database.php';
 
 // Nếu đã đăng nhập thì chuyển đến trang tương ứng
 if (!empty($_SESSION['admin_id'])) {
-    header('Location: /dac-san-ca-mau/admin/index.php');
+    header('Location: /DuAnNgheCoBan_Nhom1/admin/index.php');
     exit;
 }
 
 if (!empty($_SESSION['user_id'])) {
-    header('Location: /dac-san-ca-mau/');
+    header('Location: /DuAnNgheCoBan_Nhom1/');
     exit;
 }
 
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['admin_username'] = $admin['ten_dang_nhap'];
                 $_SESSION['role'] = 'admin';
 
-                header('Location: /dac-san-ca-mau/admin/index.php');
+                header('Location: /DuAnNgheCoBan_Nhom1/admin/index.php');
                 exit;
             }
 
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['user_username'] = $user['ten_dang_nhap'];
                     $_SESSION['role'] = 'user';
 
-                    header('Location: /dac-san-ca-mau/');
+                    header('Location: /DuAnNgheCoBan_Nhom1/');
                     exit;
                 }
 
@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php if ($khongCoTaiKhoan): ?>
                                     <div class="mt-2">
                                         <a
-                                            href="/dac-san-ca-mau/dang-ky.php"
+                                            href="/DuAnNgheCoBan_Nhom1/dang-ky.php"
                                             class="alert-link"
                                         >
                                             Đăng ký tài khoản ngay
@@ -203,13 +203,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="text-center mt-3">
                             <span>Chưa có tài khoản?</span>
 
-                            <a href="/dac-san-ca-mau/dang-ky.php">
+                            <a href="/DuAnNgheCoBan_Nhom1/dang-ky.php">
                                 Đăng ký
                             </a>
                         </div>
 
                         <div class="text-center mt-3">
-                            <a href="/dac-san-ca-mau/">
+                            <a href="/DuAnNgheCoBan_Nhom1/">
                                 Quay về trang chủ
                             </a>
                         </div>

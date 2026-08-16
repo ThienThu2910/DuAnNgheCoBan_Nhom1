@@ -7,6 +7,6 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 if (empty($_SESSION['admin_id'])) {
-    header('Location: /dac-san-ca-mau/admin/login.php');
+    header('Location: /DuAnNgheCoBan_Nhom1/admin/login.php');
     exit;
 }

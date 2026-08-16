@@ -147,7 +147,7 @@ require_once __DIR__ . '/includes/navbar.php';
                 rgba(20, 77, 54, 0.85),
                 rgba(20, 77, 54, 0.85)
             ),
-            url("/dac-san-ca-mau/assets/images/banner-ca-mau.jpg")
+            url("/DuAnNgheCoBan_Nhom1/assets/images/banner-ca-mau.jpg")
             center / cover no-repeat;
     }
 
@@ -262,7 +262,7 @@ require_once __DIR__ . '/includes/navbar.php';
                         </button>
 
                         <a
-                            href="/dac-san-ca-mau/co-so-san-xuat.php"
+                            href="/DuAnNgheCoBan_Nhom1/co-so-san-xuat.php"
                             class="btn btn-outline-secondary"
                         >
                             Xóa
@@ -288,7 +288,7 @@ require_once __DIR__ . '/includes/navbar.php';
         </div>
 
         <a
-            href="/dac-san-ca-mau/ban-do.php<?= $dacSanId
+            href="/DuAnNgheCoBan_Nhom1/ban-do.php<?= $dacSanId
                 ? '?dac_san_id=' . (int) $dacSanId
                 : '' ?>"
             class="btn btn-success"
@@ -308,7 +308,7 @@ require_once __DIR__ . '/includes/navbar.php';
                     <div class="card facility-card h-100 shadow-sm">
                         <?php if (!empty($coSo['hinh_anh'])): ?>
                             <img
-                                src="/dac-san-ca-mau/assets/uploads/co-so/<?= htmlspecialchars(
+                                src="/DuAnNgheCoBan_Nhom1/assets/uploads/co-so/<?= htmlspecialchars(
                                     $coSo['hinh_anh']
                                 ) ?>"
                                 alt="<?= htmlspecialchars(
@@ -388,7 +388,7 @@ require_once __DIR__ . '/includes/navbar.php';
                                     && $coSo['kinh_do'] !== null
                                 ): ?>
                                     <a
-                                        href="/dac-san-ca-mau/ban-do.php?co_so_id=<?= (int) $coSo['id'] ?>"
+                                        href="/DuAnNgheCoBan_Nhom1/ban-do.php?co_so_id=<?= (int) $coSo['id'] ?>"
                                         class="btn btn-outline-success"
                                     >
                                         Vị trí

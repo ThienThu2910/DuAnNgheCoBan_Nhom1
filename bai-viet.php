@@ -107,7 +107,7 @@ require_once __DIR__ . '/includes/navbar.php';
                 rgba(20, 77, 54, 0.84),
                 rgba(20, 77, 54, 0.84)
             ),
-            url("/dac-san-ca-mau/assets/images/banner-ca-mau.jpg")
+            url("/DuAnNgheCoBan_Nhom1/assets/images/banner-ca-mau.jpg")
             center / cover no-repeat;
     }
 
@@ -187,7 +187,7 @@ require_once __DIR__ . '/includes/navbar.php';
                     </button>
 
                     <a
-                        href="/dac-san-ca-mau/bai-viet.php"
+                        href="/DuAnNgheCoBan_Nhom1/bai-viet.php"
                         class="btn btn-secondary"
                     >
                         Xóa
@@ -218,7 +218,7 @@ require_once __DIR__ . '/includes/navbar.php';
                     <article class="card article-card h-100 shadow-sm">
                         <?php if (!empty($baiViet['hinh_anh'])): ?>
                             <img
-                                src="/dac-san-ca-mau/assets/uploads/bai-viet/<?= htmlspecialchars(
+                                src="/DuAnNgheCoBan_Nhom1/assets/uploads/bai-viet/<?= htmlspecialchars(
                                     $baiViet['hinh_anh']
                                 ) ?>"
                                 alt="<?= htmlspecialchars(
@@ -256,7 +256,7 @@ require_once __DIR__ . '/includes/navbar.php';
                             </p>
 
                             <a
-                                href="/dac-san-ca-mau/chi-tiet-bai-viet.php?id=<?= (int) $baiViet['id'] ?>"
+                                href="/DuAnNgheCoBan_Nhom1/chi-tiet-bai-viet.php?id=<?= (int) $baiViet['id'] ?>"
                                 class="btn btn-outline-success mt-auto"
                             >
                                 Đọc bài viết
