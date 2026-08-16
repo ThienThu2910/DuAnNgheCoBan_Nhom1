@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $_SESSION['csrf_contact'] = bin2hex(random_bytes(32));
 
-        header('Location: /dac-san-ca-mau/lien-he.php');
+        header('Location: /DuAnNgheCoBan_Nhom1/lien-he.php');
         exit;
     }
 }
@@ -124,7 +124,7 @@ require_once __DIR__ . '/includes/navbar.php';
                 rgba(20, 77, 54, 0.86),
                 rgba(20, 77, 54, 0.86)
             ),
-            url("/dac-san-ca-mau/assets/images/banner-ca-mau.jpg")
+            url("/DuAnNgheCoBan_Nhom1/assets/images/banner-ca-mau.jpg")
             center / cover no-repeat;
     }
 

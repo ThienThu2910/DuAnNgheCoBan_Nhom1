@@ -171,7 +171,7 @@ function hienThiTrangThaiLienHe(string $trangThai): string
         <div class="container">
             <a
                 class="navbar-brand fw-bold"
-                href="/dac-san-ca-mau/admin/index.php"
+                href="/DuAnNgheCoBan_Nhom1/admin/index.php"
             >
                 Quản trị đặc sản Cà Mau
             </a>
@@ -185,7 +185,7 @@ function hienThiTrangThaiLienHe(string $trangThai): string
                 </span>
 
                 <a
-                    href="/dac-san-ca-mau/logout.php"
+                    href="/DuAnNgheCoBan_Nhom1/logout.php"
                     class="btn btn-outline-light btn-sm"
                 >
                     Đăng xuất
@@ -210,7 +210,7 @@ function hienThiTrangThaiLienHe(string $trangThai): string
             </div>
 
             <a
-                href="/dac-san-ca-mau/"
+                href="/DuAnNgheCoBan_Nhom1/"
                 class="btn btn-secondary"
             >
                 Về trang chủ
@@ -314,35 +314,35 @@ function hienThiTrangThaiLienHe(string $trangThai): string
 
             <div class="admin-grid">
                 <a
-                    href="/dac-san-ca-mau/admin/dac-san/"
+                    href="/DuAnNgheCoBan_Nhom1/admin/dac-san/"
                     class="admin-function"
                 >
                     Quản lý đặc sản
                 </a>
 
                 <a
-                    href="/dac-san-ca-mau/admin/danh-muc/"
+                    href="/DuAnNgheCoBan_Nhom1/admin/danh-muc/"
                     class="admin-function"
                 >
                     Quản lý danh mục
                 </a>
 
                 <a
-                    href="/dac-san-ca-mau/admin/co-so/"
+                    href="/DuAnNgheCoBan_Nhom1/admin/co-so/"
                     class="admin-function"
                 >
                     Quản lý cơ sở sản xuất
                 </a>
 
                 <a
-                    href="/dac-san-ca-mau/admin/bai-viet/"
+                    href="/DuAnNgheCoBan_Nhom1/admin/bai-viet/"
                     class="admin-function"
                 >
                     Quản lý bài viết
                 </a>
 
                 <a
-                    href="/dac-san-ca-mau/admin/lien-he/"
+                    href="/DuAnNgheCoBan_Nhom1/admin/lien-he/"
                     class="admin-function"
                 >
                     Quản lý liên hệ
@@ -367,7 +367,7 @@ function hienThiTrangThaiLienHe(string $trangThai): string
                 </h2>
 
                 <a
-                    href="/dac-san-ca-mau/admin/lien-he/"
+                    href="/DuAnNgheCoBan_Nhom1/admin/lien-he/"
                     class="btn btn-outline-success btn-sm"
                 >
                     Xem tất cả
@@ -438,7 +438,7 @@ function hienThiTrangThaiLienHe(string $trangThai): string
 
                                             <td>
                                                 <a
-                                                    href="/dac-san-ca-mau/admin/lien-he/detail.php?id=<?= (int) $lienHe['id'] ?>"
+                                                    href="/DuAnNgheCoBan_Nhom1/admin/lien-he/detail.php?id=<?= (int) $lienHe['id'] ?>"
                                                     class="btn btn-primary btn-sm"
                                                 >
                                                     Xem

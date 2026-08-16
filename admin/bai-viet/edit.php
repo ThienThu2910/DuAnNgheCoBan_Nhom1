@@ -293,14 +293,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <nav class="navbar navbar-dark bg-success">
         <div class="container">
             <a
-                href="/dac-san-ca-mau/admin/index.php"
+                href="/DuAnNgheCoBan_Nhom1/admin/index.php"
                 class="navbar-brand fw-bold"
             >
                 Quản trị đặc sản Cà Mau
             </a>
 
             <a
-                href="/dac-san-ca-mau/logout.php"
+                href="/DuAnNgheCoBan_Nhom1/logout.php"
                 class="btn btn-outline-light btn-sm"
             >
                 Đăng xuất
@@ -420,7 +420,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </label>
 
                                     <img
-                                        src="/dac-san-ca-mau/assets/uploads/bai-viet/<?= htmlspecialchars(
+                                        src="/DuAnNgheCoBan_Nhom1/assets/uploads/bai-viet/<?= htmlspecialchars(
                                             $hinhAnhCu
                                         ) ?>"
                                         alt="<?= htmlspecialchars($tieuDe) ?>"

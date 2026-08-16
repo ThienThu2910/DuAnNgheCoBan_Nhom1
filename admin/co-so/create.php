@@ -138,10 +138,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-light">    
     <nav class="navbar navbar-dark bg-success">    
         <div class="container">    
-            <a class="navbar-brand fw-bold" href="/dac-san-ca-mau/admin/index.php">Quản trị đặc sản Cà Mau</a>    
+            <a class="navbar-brand fw-bold" href="/DuAnNgheCoBan_Nhom1/admin/index.php">Quản trị đặc sản Cà Mau</a>    
             <div class="d-flex align-items-center gap-2">
-                <a href="/dac-san-ca-mau/index.php" target="_blank" class="btn btn-light btn-sm fw-semibold">🌐 Xem trang chủ</a>
-                <a href="/dac-san-ca-mau/logout.php" class="btn btn-outline-light btn-sm">Đăng xuất</a>    
+                <a href="/DuAnNgheCoBan_Nhom1/index.php" target="_blank" class="btn btn-light btn-sm fw-semibold">🌐 Xem trang chủ</a>
+                <a href="/DuAnNgheCoBan_Nhom1/logout.php" class="btn btn-outline-light btn-sm">Đăng xuất</a>    
             </div>
         </div>    
     </nav>  

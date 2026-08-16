@@ -10,7 +10,7 @@ $currentPage = 'dac-san';
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
 if (!$id) {    
-    header('Location: /dac-san-ca-mau/dac-san.php');    
+    header('Location: /DuAnNgheCoBan_Nhom1/dac-san.php');    
     exit;    
 }
 
@@ -52,7 +52,7 @@ if (!$dacSan) {
         <div class="alert alert-warning text-center py-5">    
             <h1 class="h3">Không tìm thấy đặc sản</h1>    
             <p>Đặc sản không tồn tại hoặc đang tạm ẩn khỏi website.</p>    
-            <a href="/dac-san-ca-mau/dac-san.php" class="btn btn-success">    
+            <a href="/DuAnNgheCoBan_Nhom1/dac-san.php" class="btn btn-success">    
                 Quay lại danh sách    
             </a>    
         </div>    
@@ -150,8 +150,8 @@ require_once __DIR__ . '/includes/navbar.php';
     <div class="container">    
         <nav aria-label="breadcrumb">    
             <ol class="breadcrumb mb-2">    
-                <li class="breadcrumb-item"><a href="/dac-san-ca-mau/">Trang chủ</a></li>    
-                <li class="breadcrumb-item"><a href="/dac-san-ca-mau/dac-san.php">Đặc sản</a></li>    
+                <li class="breadcrumb-item"><a href="/DuAnNgheCoBan_Nhom1/">Trang chủ</a></li>    
+                <li class="breadcrumb-item"><a href="/DuAnNgheCoBan_Nhom1/dac-san.php">Đặc sản</a></li>    
                 <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($dacSan['ten_dac_san']) ?></li>    
             </ol>    
         </nav>  
@@ -163,7 +163,7 @@ require_once __DIR__ . '/includes/navbar.php';
     <section class="row g-5 align-items-start">    
         <div class="col-lg-6">    
             <?php if (!empty($dacSan['hinh_anh'])): ?>    
-                <img id="main-product-image" src="/dac-san-ca-mau/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" alt="<?= htmlspecialchars($dacSan['ten_dac_san']) ?>" class="detail-image shadow-sm mb-3">    
+                <img id="main-product-image" src="/DuAnNgheCoBan_Nhom1/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" alt="<?= htmlspecialchars($dacSan['ten_dac_san']) ?>" class="detail-image shadow-sm mb-3">    
             <?php else: ?>    
                 <div class="detail-no-image mb-3">Chưa có hình ảnh</div>    
             <?php endif; ?>
@@ -172,10 +172,10 @@ require_once __DIR__ . '/includes/navbar.php';
             <?php if (!empty($galleryAnh)): ?>
                 <div class="d-flex gap-2 overflow-auto pb-2">
                     <?php if (!empty($dacSan['hinh_anh'])): ?>
-                        <img src="/dac-san-ca-mau/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" class="gallery-thumb" onclick="changeMainImage(this)" style="border-color: #198754;">
+                        <img src="/DuAnNgheCoBan_Nhom1/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" class="gallery-thumb" onclick="changeMainImage(this)" style="border-color: #198754;">
                     <?php endif; ?>
                     <?php foreach ($galleryAnh as $img): ?>
-                        <img src="/dac-san-ca-mau/assets/uploads/dac-san/<?= htmlspecialchars($img['duong_dan']) ?>" class="gallery-thumb" onclick="changeMainImage(this)">
+                        <img src="/DuAnNgheCoBan_Nhom1/assets/uploads/dac-san/<?= htmlspecialchars($img['duong_dan']) ?>" class="gallery-thumb" onclick="changeMainImage(this)">
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
@@ -200,7 +200,7 @@ require_once __DIR__ . '/includes/navbar.php';
 
             <div class="d-flex flex-wrap gap-2 mt-4">    
                 <a href="#co-so-san-xuat" class="btn btn-success">Xem địa điểm</a>    
-                <a href="/dac-san-ca-mau/dac-san.php" class="btn btn-outline-secondary">Xem đặc sản khác</a>    
+                <a href="/DuAnNgheCoBan_Nhom1/dac-san.php" class="btn btn-outline-secondary">Xem đặc sản khác</a>    
             </div>    
         </div>    
     </section>
@@ -275,14 +275,14 @@ require_once __DIR__ . '/includes/navbar.php';
                     <div class="col-md-6 col-lg-4">    
                         <div class="card related-card h-100 shadow-sm">    
                             <?php if (!empty($lienQuan['hinh_anh'])): ?>    
-                                <img src="/dac-san-ca-mau/assets/uploads/dac-san/<?= htmlspecialchars($lienQuan['hinh_anh']) ?>" alt="<?= htmlspecialchars($lienQuan['ten_dac_san']) ?>" class="related-image">    
+                                <img src="/DuAnNgheCoBan_Nhom1/assets/uploads/dac-san/<?= htmlspecialchars($lienQuan['hinh_anh']) ?>" alt="<?= htmlspecialchars($lienQuan['ten_dac_san']) ?>" class="related-image">    
                             <?php else: ?>    
                                 <div class="related-no-image">Chưa có hình ảnh</div>    
                             <?php endif; ?>    
                             <div class="card-body d-flex flex-column">    
                                 <h3 class="h5 fw-bold"><?= htmlspecialchars($lienQuan['ten_dac_san']) ?></h3>    
                                 <p class="text-muted"><?= htmlspecialchars($lienQuan['mo_ta_ngan'] ?: 'Thông tin đang được cập nhật.') ?></p>    
-                                <a href="/dac-san-ca-mau/chi-tiet-dac-san.php?id=<?= (int) $lienQuan['id'] ?>" class="btn btn-outline-success mt-auto">Xem chi tiết</a>    
+                                <a href="/DuAnNgheCoBan_Nhom1/chi-tiet-dac-san.php?id=<?= (int) $lienQuan['id'] ?>" class="btn btn-outline-success mt-auto">Xem chi tiết</a>    
                             </div>    
                         </div>    
                     </div>    

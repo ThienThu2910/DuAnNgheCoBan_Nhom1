@@ -9,7 +9,7 @@ $currentPage = 'bai-viet';
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
 if (!$id) {
-    header('Location: /dac-san-ca-mau/bai-viet.php');
+    header('Location: /DuAnNgheCoBan_Nhom1/bai-viet.php');
     exit;
 }
 
@@ -101,7 +101,7 @@ require_once __DIR__ . '/includes/navbar.php';
             </p>
 
             <a
-                href="/dac-san-ca-mau/bai-viet.php"
+                href="/DuAnNgheCoBan_Nhom1/bai-viet.php"
                 class="btn btn-success"
             >
                 Quay lại danh sách
@@ -114,13 +114,13 @@ require_once __DIR__ . '/includes/navbar.php';
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="/dac-san-ca-mau/">
+                        <a href="/DuAnNgheCoBan_Nhom1/">
                             Trang chủ
                         </a>
                     </li>
 
                     <li class="breadcrumb-item">
-                        <a href="/dac-san-ca-mau/bai-viet.php">
+                        <a href="/DuAnNgheCoBan_Nhom1/bai-viet.php">
                             Câu chuyện đặc sản
                         </a>
                     </li>
@@ -150,7 +150,7 @@ require_once __DIR__ . '/includes/navbar.php';
     <main class="container py-5">
         <?php if (!empty($baiViet['hinh_anh'])): ?>
             <img
-                src="/dac-san-ca-mau/assets/uploads/bai-viet/<?= htmlspecialchars(
+                src="/DuAnNgheCoBan_Nhom1/assets/uploads/bai-viet/<?= htmlspecialchars(
                     $baiViet['hinh_anh']
                 ) ?>"
                 alt="<?= htmlspecialchars($baiViet['tieu_de']) ?>"
@@ -191,7 +191,7 @@ require_once __DIR__ . '/includes/navbar.php';
                             >
                                 <?php if (!empty($lienQuan['hinh_anh'])): ?>
                                     <img
-                                        src="/dac-san-ca-mau/assets/uploads/bai-viet/<?= htmlspecialchars(
+                                        src="/DuAnNgheCoBan_Nhom1/assets/uploads/bai-viet/<?= htmlspecialchars(
                                             $lienQuan['hinh_anh']
                                         ) ?>"
                                         alt="<?= htmlspecialchars(
@@ -213,7 +213,7 @@ require_once __DIR__ . '/includes/navbar.php';
                                     </h3>
 
                                     <a
-                                        href="/dac-san-ca-mau/chi-tiet-bai-viet.php?id=<?= (int) $lienQuan['id'] ?>"
+                                        href="/DuAnNgheCoBan_Nhom1/chi-tiet-bai-viet.php?id=<?= (int) $lienQuan['id'] ?>"
                                         class="btn btn-outline-success mt-auto"
                                     >
                                         Xem bài viết

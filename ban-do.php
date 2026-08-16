@@ -72,7 +72,7 @@ require_once __DIR__ . '/includes/navbar.php';
         color: #ffffff;
         text-align: center;
         background: linear-gradient(rgba(20, 77, 54, 0.85), rgba(20, 77, 54, 0.85)),
-                    url("/dac-san-ca-mau/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
+                    url("/DuAnNgheCoBan_Nhom1/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
     }
     #map {
         height: 600px;
@@ -109,7 +109,7 @@ require_once __DIR__ . '/includes/navbar.php';
                     <button type="submit" class="btn btn-success flex-grow-1 text-nowrap">
                         <i class="bi bi-funnel"></i> Lọc vị trí
                     </button>
-                    <a href="/dac-san-ca-mau/ban-do.php" class="btn btn-outline-secondary text-nowrap px-3">
+                    <a href="/DuAnNgheCoBan_Nhom1/ban-do.php" class="btn btn-outline-secondary text-nowrap px-3">
                         Xóa bộ lọc
                     </a>
                 </div>

@@ -7,12 +7,12 @@ session_start();
 require_once __DIR__ . '/config/database.php';
 
 if (!empty($_SESSION['admin_id'])) {
-    header('Location: /dac-san-ca-mau/admin/index.php');
+    header('Location: /DuAnNgheCoBan_Nhom1/admin/index.php');
     exit;
 }
 
 if (!empty($_SESSION['user_id'])) {
-    header('Location: /dac-san-ca-mau/tai-khoan.php');
+    header('Location: /DuAnNgheCoBan_Nhom1/tai-khoan.php');
     exit;
 }
 
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['success'] =
             'Đăng ký tài khoản thành công. Vui lòng đăng nhập.';
 
-        header('Location: /dac-san-ca-mau/login.php');
+        header('Location: /DuAnNgheCoBan_Nhom1/login.php');
         exit;
     }
 }
@@ -232,13 +232,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="text-center mt-3">
                             <span>Đã có tài khoản?</span>
 
-                            <a href="/dac-san-ca-mau/login.php">
+                            <a href="/DuAnNgheCoBan_Nhom1/login.php">
                                 Đăng nhập
                             </a>
                         </div>
 
                         <div class="text-center mt-3">
-                            <a href="/dac-san-ca-mau/">
+                            <a href="/DuAnNgheCoBan_Nhom1/">
                                 Quay về trang chủ
                             </a>
                         </div>

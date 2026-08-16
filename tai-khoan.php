@@ -36,14 +36,14 @@ require_once __DIR__ . '/includes/navbar.php';
             </p>
 
             <a
-                href="/dac-san-ca-mau/dac-san.php"
+                href="/DuAnNgheCoBan_Nhom1/dac-san.php"
                 class="btn btn-success"
             >
                 Xem đặc sản
             </a>
 
             <a
-                href="/dac-san-ca-mau/logout.php"
+                href="/DuAnNgheCoBan_Nhom1/logout.php"
                 class="btn btn-outline-danger"
             >
                 Đăng xuất
