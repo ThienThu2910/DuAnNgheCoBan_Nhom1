@@ -1,4 +1,4 @@
-<footer class="mt-5 py-4">
+<footer class="site-footer">
     <div class="container text-center">
         <h5>Website giới thiệu đặc sản Cà Mau</h5>
 
@@ -15,95 +15,79 @@
 <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
 ></script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
 
-    const items = document.querySelectorAll(
-        ".home-section, .specialty-card, .facility-card, .article-card, .map-callout"
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    /* =====================================================
+       SCROLL REVEAL — GIỮ HIỆU ỨNG GIAO DIỆN
+    ===================================================== */
+    const revealItems = document.querySelectorAll(
+        '.home-section, .specialty-card, .facility-card, .article-card, .map-callout, .detail-banner, .article-header, .contact-banner, .facility-banner, .specialty-banner, .map-banner'
     );
 
-    items.forEach(function (item) {
-        item.classList.add("cm-reveal");
-    });
-
-
-    const observer = new IntersectionObserver(function (entries) {
-
-        entries.forEach(function (entry) {
-
-            if (entry.isIntersecting) {
-
-                entry.target.classList.add("cm-show");
-
-                observer.unobserve(entry.target);
-            }
-
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('cm-show');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.10,
+            rootMargin: '0px 0px -60px 0px'
         });
 
-    }, {
-        threshold: 0.12,
-        rootMargin: "0px 0px -70px 0px"
-    });
-
-
-    items.forEach(function (item) {
-        observer.observe(item);
-    });
+        revealItems.forEach(function (item) {
+            item.classList.add('cm-reveal');
+            observer.observe(item);
+        });
+    } else {
+        revealItems.forEach(function (item) {
+            item.classList.add('cm-show');
+        });
+    }
 
 });
 </script>
+<!-- BACK TO TOP -->
+<button
+    type="button"
+    id="backToTop"
+    class="back-to-top"
+    aria-label="Lên đầu trang"
+    title="Lên đầu trang"
+>
+    ↑
+</button>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener('DOMContentLoaded', function () {
 
-    const html = document.documentElement;
-    const toggle = document.getElementById("themeToggle");
+    const backToTop = document.getElementById('backToTop');
 
-    if (!toggle) {
-        return;
-    }
+    if (!backToTop) return;
 
-
-    /* Lấy theme đã lưu */
-
-    const savedTheme = localStorage.getItem("cm-theme");
-
-
-    if (savedTheme === "dark") {
-        html.setAttribute("data-theme", "dark");
-        toggle.textContent = "☀";
-    } else {
-        html.setAttribute("data-theme", "light");
-        toggle.textContent = "☾";
-    }
-
-
-    /* Click đổi theme */
-
-    toggle.addEventListener("click", function () {
-
-        const isDark =
-            html.getAttribute("data-theme") === "dark";
-
-
-        if (isDark) {
-
-            html.setAttribute("data-theme", "light");
-
-            localStorage.setItem("cm-theme", "light");
-
-            toggle.textContent = "☾";
-
+    function toggleBackToTop() {
+        if (window.scrollY > 350) {
+            backToTop.classList.add('show');
         } else {
-
-            html.setAttribute("data-theme", "dark");
-
-            localStorage.setItem("cm-theme", "dark");
-
-            toggle.textContent = "☀";
-
+            backToTop.classList.remove('show');
         }
+    }
 
+    window.addEventListener('scroll', toggleBackToTop, {
+        passive: true
     });
+
+    backToTop.addEventListener('click', function () {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    toggleBackToTop();
 
 });
 </script>
