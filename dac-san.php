@@ -258,5 +258,4 @@ require_once __DIR__ . '/includes/navbar.php';
         <?php endif; ?>
     <?php endif; ?>
 </main>
-
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
