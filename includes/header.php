@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 $pageTitle = $pageTitle ?? 'Đặc sản Cà Mau';
 $currentPage = $currentPage ?? '';
-$baseUrl = $baseUrl ?? '/DuAnNgheCoBan_Nhom1';
+
+if (!isset($baseUrl)) {
+    $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+    $baseUrl = preg_replace('#/(admin|api|includes).*$#', '', $scriptDir);
+    $baseUrl = rtrim($baseUrl, '/');
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -14,7 +19,6 @@ $baseUrl = $baseUrl ?? '/DuAnNgheCoBan_Nhom1';
     <meta name="description" content="Khám phá đặc sản, cơ sở sản xuất và câu chuyện văn hóa Cà Mau.">
     <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
 
-    <!-- Khôi phục theme trước khi trình duyệt render giao diện để tránh chớp màu -->
     <script>
         (function () {
             try {
@@ -31,6 +35,6 @@ $baseUrl = $baseUrl ?? '/DuAnNgheCoBan_Nhom1';
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?= $baseUrl ?>/assets/css/style.css?v=20260817">
+    <link rel="stylesheet" href="<?= htmlspecialchars($baseUrl) ?>/assets/css/style.css?v=20260817">
 </head>
 <body>

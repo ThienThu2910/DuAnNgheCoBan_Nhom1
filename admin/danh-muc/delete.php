@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
 
 if (!$id) {
-    $_SESSION['success'] = 'Mã danh mục không hợp lệ.';
+    $_SESSION['error'] = 'Mã danh mục không hợp lệ.';
     header('Location: index.php');
     exit;
 }
@@ -23,22 +23,14 @@ $kiemTra = $pdo->prepare(
      FROM dac_san
      WHERE danh_muc_id = :id'
 );
-
 $kiemTra->execute(['id' => $id]);
-
 $ketQua = $kiemTra->fetch();
 
-if ((int) $ketQua['tong'] > 0) {
-    $_SESSION['success'] =
-        'Không thể xóa vì danh mục đang có đặc sản.';
+if ((int) ($ketQua['tong'] ?? 0) > 0) {
+    $_SESSION['error'] = 'Không thể xóa vì danh mục đang có đặc sản liên kết.';
 } else {
-    $xoa = $pdo->prepare(
-        'DELETE FROM danh_muc
-         WHERE id = :id'
-    );
-
+    $xoa = $pdo->prepare('DELETE FROM danh_muc WHERE id = :id');
     $xoa->execute(['id' => $id]);
-
     $_SESSION['success'] = 'Xóa danh mục thành công.';
 }
 

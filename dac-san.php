@@ -34,8 +34,9 @@ $where = ' WHERE ds.trang_thai = 1 ';
 $params = [];
 
 if ($tuKhoa !== '') {
-    $where .= ' AND (ds.ten_dac_san LIKE :tu_khoa OR ds.mo_ta_ngan LIKE :tu_khoa) ';
-    $params['tu_khoa'] = '%' . $tuKhoa . '%';
+    $where .= ' AND (ds.ten_dac_san LIKE :tu_khoa1 OR ds.mo_ta_ngan LIKE :tu_khoa2) ';
+    $params['tu_khoa1'] = '%' . $tuKhoa . '%';
+    $params['tu_khoa2'] = '%' . $tuKhoa . '%';
 }
 
 if ($danhMucId) {
@@ -125,7 +126,7 @@ require_once __DIR__ . '/includes/navbar.php';
         padding: 60px 0;
         color: #ffffff;
         text-align: center;
-        background: linear-gradient(rgba(18, 74, 52, 0.82), rgba(18, 74, 52, 0.82)), url("/DuAnNgheCoBan_Nhom1/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
+        background: linear-gradient(rgba(18, 74, 52, 0.82), rgba(18, 74, 52, 0.82)), url("<?= htmlspecialchars($baseUrl) ?>/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
     }
     .specialty-card { overflow: hidden; border: 0; border-radius: 12px; transition: transform 0.25s ease, box-shadow 0.25s ease; }
     .specialty-card:hover { transform: translateY(-5px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12); }
@@ -179,7 +180,7 @@ require_once __DIR__ . '/includes/navbar.php';
                 <div class="col-lg-3 col-md-6">
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-success flex-grow-1">Lọc đặc sản</button>
-                        <a href="/DuAnNgheCoBan_Nhom1/dac-san.php" class="btn btn-outline-secondary" title="Đặt lại bộ lọc">Xóa lọc</a>
+                        <a href="dac-san.php" class="btn btn-outline-secondary" title="Đặt lại bộ lọc">Xóa lọc</a>
                     </div>
                 </div>
 
@@ -209,7 +210,7 @@ require_once __DIR__ . '/includes/navbar.php';
                     <div class="card specialty-card h-100 shadow-sm">
                         <div class="position-relative">
                             <?php if (!empty($dacSan['hinh_anh'])): ?>
-                                <img src="/DuAnNgheCoBan_Nhom1/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" alt="<?= htmlspecialchars($dacSan['ten_dac_san']) ?>">
+                                <img src="<?= htmlspecialchars($baseUrl) ?>/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" alt="<?= htmlspecialchars($dacSan['ten_dac_san']) ?>">
                             <?php else: ?>
                                 <div class="specialty-no-image">Chưa có hình ảnh</div>
                             <?php endif; ?>
@@ -229,7 +230,7 @@ require_once __DIR__ . '/includes/navbar.php';
                             <h3 class="h5 fw-bold"><?= htmlspecialchars($dacSan['ten_dac_san']) ?></h3>
                             <p class="text-muted specialty-description"><?= htmlspecialchars($dacSan['mo_ta_ngan'] ?: 'Đang cập nhật thông tin giới thiệu.') ?></p>
 
-                            <a href="/DuAnNgheCoBan_Nhom1/chi-tiet-dac-san.php?id=<?= (int) $dacSan['id'] ?>" class="btn btn-success mt-auto">Xem chi tiết</a>
+                            <a href="<?= htmlspecialchars($baseUrl) ?>/chi-tiet-dac-san.php?id=<?= (int) $dacSan['id'] ?>" class="btn btn-success mt-auto">Xem chi tiết</a>
                         </div>
                     </div>
                 </div>

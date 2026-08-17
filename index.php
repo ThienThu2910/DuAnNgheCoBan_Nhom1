@@ -6,7 +6,6 @@ require_once __DIR__ . '/config/database.php';
 
 $pageTitle = 'Đặc sản Cà Mau - Tinh hoa vùng đất cực Nam';
 $currentPage = 'trang-chu';
-$baseUrl = '/DuAnNgheCoBan_Nhom1';
 
 /*
  * Lấy 6 đặc sản nổi bật.
