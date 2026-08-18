@@ -34,9 +34,19 @@ $where = ' WHERE ds.trang_thai = 1 ';
 $params = [];
 
 if ($tuKhoa !== '') {
-    $where .= ' AND (ds.ten_dac_san LIKE :tu_khoa1 OR ds.mo_ta_ngan LIKE :tu_khoa2) ';
-    $params['tu_khoa1'] = '%' . $tuKhoa . '%';
-    $params['tu_khoa2'] = '%' . $tuKhoa . '%';
+    // Chuyển từ khóa về chữ thường chuẩn UTF-8
+    $tuKhoaLower = mb_strtolower($tuKhoa, 'UTF-8');
+
+    // Dùng BINARY để phân biệt chính xác dấu tiếng Việt (cua != của != cửa)
+    $where .= ' AND (
+        LOWER(CAST(ds.ten_dac_san AS BINARY)) LIKE :tu_khoa1
+        OR LOWER(CAST(dm.ten_danh_muc AS BINARY)) LIKE :tu_khoa2
+        OR LOWER(CAST(ds.mo_ta_ngan AS BINARY)) LIKE :tu_khoa3
+    ) ';
+
+    $params['tu_khoa1'] = '%' . $tuKhoaLower . '%';
+    $params['tu_khoa2'] = '%' . $tuKhoaLower . '%';
+    $params['tu_khoa3'] = '%' . $tuKhoaLower . '%';
 }
 
 if ($danhMucId) {
@@ -57,6 +67,7 @@ if ($khuVuc !== '') {
 $sqlDem = '
     SELECT COUNT(DISTINCT ds.id) AS tong
     FROM dac_san AS ds
+    LEFT JOIN danh_muc AS dm ON dm.id = ds.danh_muc_id
     LEFT JOIN dac_san_co_so AS dscs ON dscs.dac_san_id = ds.id
     LEFT JOIN co_so_san_xuat AS cs ON cs.id = dscs.co_so_id
 ' . $where;
@@ -126,7 +137,7 @@ require_once __DIR__ . '/includes/navbar.php';
         padding: 60px 0;
         color: #ffffff;
         text-align: center;
-        background: linear-gradient(rgba(18, 74, 52, 0.82), rgba(18, 74, 52, 0.82)), url("<?= htmlspecialchars($baseUrl) ?>/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
+        background: linear-gradient(rgba(56, 16, 21, 0.85), rgba(56, 16, 21, 0.85)), url("<?= htmlspecialchars($baseUrl) ?>/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
     }
     .specialty-card { overflow: hidden; border: 0; border-radius: 12px; transition: transform 0.25s ease, box-shadow 0.25s ease; }
     .specialty-card:hover { transform: translateY(-5px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12); }
@@ -143,7 +154,6 @@ require_once __DIR__ . '/includes/navbar.php';
 </section>
 
 <main class="container py-5">
-    <!-- Bộ lọc đa tiêu chí -->
     <div class="card border-0 shadow-sm mb-5">
         <div class="card-body p-4">
             <form method="get" class="row g-3 align-items-end">
@@ -258,4 +268,5 @@ require_once __DIR__ . '/includes/navbar.php';
         <?php endif; ?>
     <?php endif; ?>
 </main>
+
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

@@ -8,34 +8,26 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 require_once __DIR__ . '/config/database.php';
 
-$pageTitle = 'Liên hệ - Đặc sản Cà Mau';
+$pageTitle = 'Liên hệ & Góp ý - Đặc sản Cà Mau';
 $currentPage = 'lien-he';
 
 $loi = [];
-$thongBao = $_SESSION['contact_success'] ?? '';
-unset($_SESSION['contact_success']);
-
-$hoTen = $_SESSION['user_name']
-    ?? $_SESSION['user_username']
-    ?? '';
-
-$email = '';
-$soDienThoai = '';
-$chuDe = '';
-$noiDung = '';
+$thanhCong = '';
 
 if (empty($_SESSION['csrf_contact'])) {
     $_SESSION['csrf_contact'] = bin2hex(random_bytes(32));
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $csrfToken = $_POST['csrf_token'] ?? '';
+$hoTen = '';
+$email = '';
+$soDienThoai = '';
+$chuDe = '';
+$noiDung = '';
 
-    if (
-        !is_string($csrfToken)
-        || !hash_equals($_SESSION['csrf_contact'], $csrfToken)
-    ) {
-        $loi[] = 'Phiên gửi biểu mẫu không hợp lệ. Vui lòng thử lại.';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = $_POST['csrf_token'] ?? '';
+    if (!hash_equals($_SESSION['csrf_contact'] ?? '', $token)) {
+        $loi[] = 'Phiên làm việc đã hết hạn. Vui lòng thử lại.';
     }
 
     $hoTen = trim($_POST['ho_ten'] ?? '');
@@ -45,68 +37,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $noiDung = trim($_POST['noi_dung'] ?? '');
 
     if ($hoTen === '') {
-        $loi[] = 'Vui lòng nhập họ tên hoặc tên người gửi.';
+        $loi[] = 'Vui lòng nhập họ và tên của bạn.';
     }
 
-    if (
-        $email !== ''
-        && !filter_var($email, FILTER_VALIDATE_EMAIL)
-    ) {
-        $loi[] = 'Địa chỉ email không hợp lệ.';
-    }
-
-    if (
-        $soDienThoai !== ''
-        && !preg_match('/^[0-9+\s().-]{8,20}$/', $soDienThoai)
-    ) {
-        $loi[] = 'Số điện thoại không hợp lệ.';
+    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $loi[] = 'Địa chỉ email không đúng định dạng.';
     }
 
     if ($noiDung === '') {
         $loi[] = 'Vui lòng nhập nội dung liên hệ.';
-    } elseif (mb_strlen($noiDung) < 10) {
-        $loi[] = 'Nội dung liên hệ phải có ít nhất 10 ký tự.';
     }
 
     if (empty($loi)) {
         $stmt = $pdo->prepare(
-            'INSERT INTO lien_he
-                (
-                    ho_ten,
-                    email,
-                    so_dien_thoai,
-                    chu_de,
-                    noi_dung,
-                    trang_thai
-                )
-             VALUES
-                (
-                    :ho_ten,
-                    :email,
-                    :so_dien_thoai,
-                    :chu_de,
-                    :noi_dung,
-                    "moi"
-                )'
+            'INSERT INTO lien_he (ho_ten, email, so_dien_thoai, chu_de, noi_dung, trang_thai, ngay_gui)
+             VALUES (:ho_ten, :email, :so_dien_thoai, :chu_de, :noi_dung, "moi", NOW())'
         );
 
         $stmt->execute([
             'ho_ten' => $hoTen,
             'email' => $email !== '' ? $email : null,
-            'so_dien_thoai' => $soDienThoai !== ''
-                ? $soDienThoai
-                : null,
+            'so_dien_thoai' => $soDienThoai !== '' ? $soDienThoai : null,
             'chu_de' => $chuDe !== '' ? $chuDe : null,
-            'noi_dung' => $noiDung
+            'noi_dung' => $noiDung,
         ]);
 
-        $_SESSION['contact_success'] =
-            'Cảm ơn bạn đã gửi thông tin. Chúng tôi sẽ xem phản hồi sớm nhất.';
-
         $_SESSION['csrf_contact'] = bin2hex(random_bytes(32));
+        $thanhCong = 'Cảm ơn bạn đã gửi liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.';
 
-        header('Location: /DuAnNgheCoBan_Nhom1/lien-he.php');
-        exit;
+        $hoTen = '';
+        $email = '';
+        $soDienThoai = '';
+        $chuDe = '';
+        $noiDung = '';
     }
 }
 
@@ -116,209 +79,119 @@ require_once __DIR__ . '/includes/navbar.php';
 
 <style>
     .contact-banner {
-        padding: 65px 0;
+        padding: 60px 0;
         color: #ffffff;
         text-align: center;
-        background:
-            linear-gradient(
-                rgba(20, 77, 54, 0.86),
-                rgba(20, 77, 54, 0.86)
-            ),
-            url("/DuAnNgheCoBan_Nhom1/assets/images/banner-ca-mau.jpg")
-            center / cover no-repeat;
+        background: linear-gradient(rgba(20, 77, 54, 0.85), rgba(20, 77, 54, 0.85)),
+                    url("<?= htmlspecialchars($baseUrl) ?>/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
     }
-
     .contact-card {
         border: 0;
-        border-radius: 14px;
-    }
-
-    .contact-information {
-        height: 100%;
-        padding: 30px;
-        color: #ffffff;
-        border-radius: 14px;
-        background-color: #185a40;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     }
 </style>
 
 <section class="contact-banner">
     <div class="container">
-        <h1 class="fw-bold">Liên hệ</h1>
-
-        <p class="lead mb-0">
-            Gửi câu hỏi, góp ý hoặc thông tin cần tư vấn cho chúng tôi.
-        </p>
+        <h1 class="fw-bold">Liên hệ & Góp ý</h1>
+        <p class="lead mb-0">Chúng tôi luôn trân trọng mọi ý kiến đóng góp và thắc mắc của bạn.</p>
     </div>
 </section>
 
 <main class="container py-5">
-    <div class="row g-4">
+    <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card contact-card shadow-sm">
-                <div class="card-body p-4 p-lg-5">
-                    <h2 class="h3 text-success mb-4">
-                        Gửi thông tin liên hệ
-                    </h2>
+            <div class="card contact-card p-4 p-md-5">
+                <?php if (!empty($thanhCong)): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i><?= htmlspecialchars($thanhCong) ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
 
-                    <?php if ($thongBao !== ''): ?>
-                        <div class="alert alert-success">
-                            <?= htmlspecialchars($thongBao) ?>
-                        </div>
-                    <?php endif; ?>
+                <?php if (!empty($loi)): ?>
+                    <div class="alert alert-danger" role="alert">
+                        <ul class="mb-0 ps-3">
+                            <?php foreach ($loi as $itemLoi): ?>
+                                <li><?= htmlspecialchars($itemLoi) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
 
-                    <?php if (!empty($loi)): ?>
-                        <div class="alert alert-danger">
-                            <ul class="mb-0">
-                                <?php foreach ($loi as $noiDungLoi): ?>
-                                    <li>
-                                        <?= htmlspecialchars($noiDungLoi) ?>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                    <?php endif; ?>
+                <form method="post" action="">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_contact']) ?>">
 
-                    <form method="post">
-                        <input
-                            type="hidden"
-                            name="csrf_token"
-                            value="<?= htmlspecialchars(
-                                $_SESSION['csrf_contact']
-                            ) ?>"
-                        >
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label
-                                    for="ho_ten"
-                                    class="form-label"
-                                >
-                                    Tên người gửi
-                                    <span class="text-danger">*</span>
-                                </label>
-
-                                <input
-                                    type="text"
-                                    id="ho_ten"
-                                    name="ho_ten"
-                                    class="form-control"
-                                    value="<?= htmlspecialchars($hoTen) ?>"
-                                    required
-                                >
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label
-                                    for="so_dien_thoai"
-                                    class="form-label"
-                                >
-                                    Số điện thoại
-                                </label>
-
-                                <input
-                                    type="text"
-                                    id="so_dien_thoai"
-                                    name="so_dien_thoai"
-                                    class="form-control"
-                                    value="<?= htmlspecialchars(
-                                        $soDienThoai
-                                    ) ?>"
-                                >
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label
-                                for="email"
-                                class="form-label"
-                            >
-                                Email
-                            </label>
-
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                class="form-control"
-                                value="<?= htmlspecialchars($email) ?>"
-                            >
-                        </div>
-
-                        <div class="mb-3">
-                            <label
-                                for="chu_de"
-                                class="form-label"
-                            >
-                                Chủ đề
-                            </label>
-
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="ho_ten" class="form-label fw-semibold">Tên người gửi <span class="text-danger">*</span></label>
                             <input
                                 type="text"
-                                id="chu_de"
-                                name="chu_de"
                                 class="form-control"
-                                value="<?= htmlspecialchars($chuDe) ?>"
-                                placeholder="Ví dụ: Góp ý thông tin đặc sản"
+                                id="ho_ten"
+                                name="ho_ten"
+                                value="<?= htmlspecialchars($hoTen) ?>"
+                                placeholder="Nhập họ và tên..."
+                                required
                             >
                         </div>
 
-                        <div class="mb-4">
-                            <label
-                                for="noi_dung"
-                                class="form-label"
+                        <div class="col-md-6">
+                            <label for="so_dien_thoai" class="form-label fw-semibold">Số điện thoại</label>
+                            <input
+                                type="tel"
+                                class="form-control"
+                                id="so_dien_thoai"
+                                name="so_dien_thoai"
+                                value="<?= htmlspecialchars($soDienThoai) ?>"
+                                placeholder="Nhập số điện thoại..."
                             >
-                                Nội dung
-                                <span class="text-danger">*</span>
-                            </label>
+                        </div>
 
+                        <div class="col-md-6">
+                            <label for="email" class="form-label fw-semibold">Email liên hệ</label>
+                            <input
+                                type="email"
+                                class="form-control"
+                                id="email"
+                                name="email"
+                                value="<?= htmlspecialchars($email) ?>"
+                                placeholder="example@domain.com"
+                            >
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="chu_de" class="form-label fw-semibold">Chủ đề</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="chu_de"
+                                name="chu_de"
+                                value="<?= htmlspecialchars($chuDe) ?>"
+                                placeholder="Chủ đề góp ý, hỏi đáp..."
+                            >
+                        </div>
+
+                        <div class="col-12">
+                            <label for="noi_dung" class="form-label fw-semibold">Nội dung liên hệ <span class="text-danger">*</span></label>
                             <textarea
+                                class="form-control"
                                 id="noi_dung"
                                 name="noi_dung"
-                                class="form-control"
-                                rows="7"
+                                rows="5"
+                                placeholder="Nhập nội dung chi tiết..."
                                 required
                             ><?= htmlspecialchars($noiDung) ?></textarea>
                         </div>
 
-                        <button
-                            type="submit"
-                            class="btn btn-success px-4"
-                        >
-                            Gửi liên hệ
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="contact-information shadow-sm">
-                <h2 class="h4 mb-4">
-                    Website đặc sản Cà Mau
-                </h2>
-
-                <p>
-                    Website cung cấp thông tin giới thiệu về đặc sản,
-                    văn hóa ẩm thực và các cơ sở sản xuất tại Cà Mau.
-                </p>
-
-                <hr>
-
-                <p class="mb-2">
-                    <strong>Nội dung tiếp nhận:</strong>
-                </p>
-
-                <ul>
-                    <li>Góp ý thông tin đặc sản.</li>
-                    <li>Đề xuất cơ sở sản xuất.</li>
-                    <li>Phản hồi nội dung website.</li>
-                    <li>Yêu cầu chỉnh sửa thông tin.</li>
-                </ul>
-
-                <p class="mb-0">
-                    Nhóm thực hiện: <strong>AltF4</strong>
-                </p>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-success px-4 py-2 fw-semibold">
+                                <i class="bi bi-send-fill me-1"></i> Gửi liên hệ
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

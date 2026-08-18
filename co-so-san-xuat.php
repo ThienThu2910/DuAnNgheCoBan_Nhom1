@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/functions.php';
 
 $pageTitle = 'Cơ sở sản xuất đặc sản Cà Mau';
 $currentPage = 'co-so';
@@ -66,12 +67,13 @@ $params = [];
 if ($tuKhoa !== '') {
     $sql .= '
         AND (
-            cs.ten_co_so LIKE :tu_khoa
-            OR cs.dia_chi LIKE :tu_khoa
+            cs.ten_co_so LIKE :tu_khoa1
+            OR cs.dia_chi LIKE :tu_khoa2
         )
     ';
 
-    $params['tu_khoa'] = '%' . $tuKhoa . '%';
+    $params['tu_khoa1'] = '%' . $tuKhoa . '%';
+    $params['tu_khoa2'] = '%' . $tuKhoa . '%';
 }
 
 if ($dacSanId) {
@@ -108,31 +110,6 @@ $stmt->execute($params);
 
 $danhSachCoSo = $stmt->fetchAll();
 
-/*
- * Tạo URL mở Google Maps.
- */
-function taoGoogleMapsUrl(array $coSo): string
-{
-    if (!empty($coSo['google_maps_url'])) {
-        return $coSo['google_maps_url'];
-    }
-
-    if (
-        $coSo['vi_do'] !== null
-        && $coSo['kinh_do'] !== null
-    ) {
-        return 'https://www.google.com/maps/search/?api=1&query='
-            . rawurlencode(
-                $coSo['vi_do'] . ',' . $coSo['kinh_do']
-            );
-    }
-
-    return 'https://www.google.com/maps/search/?api=1&query='
-        . rawurlencode(
-            $coSo['ten_co_so'] . ', ' . $coSo['dia_chi']
-        );
-}
-
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 ?>
@@ -147,7 +124,7 @@ require_once __DIR__ . '/includes/navbar.php';
                 rgba(20, 77, 54, 0.85),
                 rgba(20, 77, 54, 0.85)
             ),
-            url("/DuAnNgheCoBan_Nhom1/assets/images/banner-ca-mau.jpg")
+            url("<?= htmlspecialchars($baseUrl) ?>/assets/images/banner-ca-mau.jpg")
             center / cover no-repeat;
     }
 
@@ -262,7 +239,7 @@ require_once __DIR__ . '/includes/navbar.php';
                         </button>
 
                         <a
-                            href="/DuAnNgheCoBan_Nhom1/co-so-san-xuat.php"
+                            href="co-so-san-xuat.php"
                             class="btn btn-outline-secondary"
                         >
                             Xóa
@@ -288,7 +265,7 @@ require_once __DIR__ . '/includes/navbar.php';
         </div>
 
         <a
-            href="/DuAnNgheCoBan_Nhom1/ban-do.php<?= $dacSanId
+            href="ban-do.php<?= $dacSanId
                 ? '?dac_san_id=' . (int) $dacSanId
                 : '' ?>"
             class="btn btn-success"
@@ -308,7 +285,7 @@ require_once __DIR__ . '/includes/navbar.php';
                     <div class="card facility-card h-100 shadow-sm">
                         <?php if (!empty($coSo['hinh_anh'])): ?>
                             <img
-                                src="/DuAnNgheCoBan_Nhom1/assets/uploads/co-so/<?= htmlspecialchars(
+                                src="<?= htmlspecialchars($baseUrl) ?>/assets/uploads/co-so/<?= htmlspecialchars(
                                     $coSo['hinh_anh']
                                 ) ?>"
                                 alt="<?= htmlspecialchars(
@@ -388,7 +365,7 @@ require_once __DIR__ . '/includes/navbar.php';
                                     && $coSo['kinh_do'] !== null
                                 ): ?>
                                     <a
-                                        href="/DuAnNgheCoBan_Nhom1/ban-do.php?co_so_id=<?= (int) $coSo['id'] ?>"
+                                        href="ban-do.php?co_so_id=<?= (int) $coSo['id'] ?>"
                                         class="btn btn-outline-success"
                                     >
                                         Vị trí

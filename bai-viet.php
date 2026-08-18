@@ -28,12 +28,13 @@ $params = [];
 if ($tuKhoa !== '') {
     $where .= '
         AND (
-            tieu_de LIKE :tu_khoa
-            OR tom_tat LIKE :tu_khoa
+            tieu_de LIKE :tu_khoa1
+            OR tom_tat LIKE :tu_khoa2
         )
     ';
 
-    $params['tu_khoa'] = '%' . $tuKhoa . '%';
+    $params['tu_khoa1'] = '%' . $tuKhoa . '%';
+    $params['tu_khoa2'] = '%' . $tuKhoa . '%';
 }
 
 $stmtDem = $pdo->prepare(
@@ -107,7 +108,7 @@ require_once __DIR__ . '/includes/navbar.php';
                 rgba(20, 77, 54, 0.84),
                 rgba(20, 77, 54, 0.84)
             ),
-            url("/DuAnNgheCoBan_Nhom1/assets/images/banner-ca-mau.jpg")
+            url("<?= htmlspecialchars($baseUrl) ?>/assets/images/banner-ca-mau.jpg")
             center / cover no-repeat;
     }
 
@@ -187,7 +188,7 @@ require_once __DIR__ . '/includes/navbar.php';
                     </button>
 
                     <a
-                        href="/DuAnNgheCoBan_Nhom1/bai-viet.php"
+                        href="bai-viet.php"
                         class="btn btn-secondary"
                     >
                         Xóa
@@ -218,7 +219,7 @@ require_once __DIR__ . '/includes/navbar.php';
                     <article class="card article-card h-100 shadow-sm">
                         <?php if (!empty($baiViet['hinh_anh'])): ?>
                             <img
-                                src="/DuAnNgheCoBan_Nhom1/assets/uploads/bai-viet/<?= htmlspecialchars(
+                                src="<?= htmlspecialchars($baseUrl) ?>/assets/uploads/bai-viet/<?= htmlspecialchars(
                                     $baiViet['hinh_anh']
                                 ) ?>"
                                 alt="<?= htmlspecialchars(
@@ -256,7 +257,7 @@ require_once __DIR__ . '/includes/navbar.php';
                             </p>
 
                             <a
-                                href="/DuAnNgheCoBan_Nhom1/chi-tiet-bai-viet.php?id=<?= (int) $baiViet['id'] ?>"
+                                href="<?= htmlspecialchars($baseUrl) ?>/chi-tiet-bai-viet.php?id=<?= (int) $baiViet['id'] ?>"
                                 class="btn btn-outline-success mt-auto"
                             >
                                 Đọc bài viết

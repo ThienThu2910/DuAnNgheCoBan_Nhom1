@@ -21,8 +21,9 @@ $sql = '
 $params = [];
 
 if ($tuKhoa !== '') {
-    $sql .= ' AND (cs.ten_co_so LIKE :tu_khoa OR cs.dia_chi LIKE :tu_khoa)';
-    $params['tu_khoa'] = '%' . $tuKhoa . '%';
+    $sql .= ' AND (cs.ten_co_so LIKE :tu_khoa1 OR cs.dia_chi LIKE :tu_khoa2)';
+    $params['tu_khoa1'] = '%' . $tuKhoa . '%';
+    $params['tu_khoa2'] = '%' . $tuKhoa . '%';
 }
 
 $sql .= ' ORDER BY cs.id DESC';
@@ -86,7 +87,6 @@ $danhSachCoSo = $stmt->fetchAll();
         <li class="nav-item"><a href="/DuAnNgheCoBan_Nhom1/admin/bai-viet/" class="nav-link"><i class="bi bi-journal-text"></i> Quản lý bài viết</a></li>
         <li class="nav-item"><a href="/DuAnNgheCoBan_Nhom1/admin/lien-he/" class="nav-link"><i class="bi bi-envelope-fill"></i> Quản lý liên hệ</a></li>
         <li class="menu-header">Hệ thống</li>
-        <!-- Đã bỏ target="_blank" -->
         <li class="nav-item"><a href="/DuAnNgheCoBan_Nhom1/" class="nav-link"><i class="bi bi-box-arrow-up-right"></i> Xem trang chủ</a></li>
         <li class="nav-item"><a href="/DuAnNgheCoBan_Nhom1/logout.php" class="nav-link text-danger-emphasis"><i class="bi bi-box-arrow-left"></i> Đăng xuất</a></li>
     </ul>
