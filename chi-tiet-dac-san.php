@@ -87,18 +87,33 @@ require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 ?>
 
+<!-- Thư viện bản đồ Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <style>
+    .specialty-banner {
+        padding: 55px 0;
+        text-align: center;
+        background: linear-gradient(rgba(10, 40, 28, 0.8), rgba(10, 40, 28, 0.8)),
+                    url("<?= htmlspecialchars($baseUrl ?? '') ?>/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
+    }
+    .specialty-banner h1 {
+        color: #ffffff !important;
+        font-weight: 800;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    }
     .gallery-main-container {
         position: relative;
-        background: #fff;
+        background: #1a1a1a;
         border-radius: 12px;
         overflow: hidden;
-        border: 1px solid var(--cm-border);
+        border: 1px solid var(--cm-border, #dee2e6);
     }
     .gallery-main-img {
         width: 100%;
-        height: 420px;
-        object-fit: cover;
+        height: 380px;
+        object-fit: contain;
         transition: opacity 0.25s ease-in-out;
     }
     .thumb-slider-wrapper {
@@ -122,17 +137,17 @@ require_once __DIR__ . '/includes/navbar.php';
         object-fit: cover;
         border-radius: 8px;
         cursor: pointer;
-        border: 2px solid var(--cm-border);
+        border: 2px solid var(--cm-border, #dee2e6);
         transition: all 0.2s ease;
     }
     .thumb-img:hover, .thumb-img.active {
-        border-color: var(--cm-red);
+        border-color: #198754;
         transform: translateY(-2px);
-        box-shadow: 0 3px 8px rgba(100, 31, 37, 0.3);
+        box-shadow: 0 3px 8px rgba(25, 135, 84, 0.3);
     }
     .btn-thumb-nav {
         background: rgba(255, 255, 255, 0.95);
-        border: 1px solid var(--cm-border);
+        border: 1px solid #dee2e6;
         color: #333;
         width: 32px;
         height: 32px;
@@ -147,16 +162,31 @@ require_once __DIR__ . '/includes/navbar.php';
         transition: all 0.2s ease;
     }
     .btn-thumb-nav:hover {
-        background: var(--cm-red);
+        background: #198754;
         color: #fff;
-        border-color: var(--cm-red);
+        border-color: #198754;
+    }
+    #product-map {
+        height: 420px;
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    .facility-item-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .facility-item-card:hover {
+        border-color: #198754 !important;
+        background-color: #f8fdf9;
     }
 </style>
 
 <header class="specialty-banner">
     <div class="container">
         <nav aria-label="breadcrumb">
-            <ol class="breadcrumb justify-content-center mb-2 text-white-50">
+            <ol class="breadcrumb justify-content-center mb-2">
                 <li class="breadcrumb-item"><a href="index.php" class="text-white-50 text-decoration-none">Trang chủ</a></li>
                 <li class="breadcrumb-item"><a href="dac-san.php" class="text-white-50 text-decoration-none">Đặc sản</a></li>
                 <li class="breadcrumb-item active text-white" aria-current="page"><?= htmlspecialchars($dacSan['ten_dac_san']) ?></li>
@@ -222,10 +252,10 @@ require_once __DIR__ . '/includes/navbar.php';
                 <span class="badge bg-secondary px-3 py-2">
                     <i class="bi bi-tag-fill me-1"></i> <?= htmlspecialchars($dacSan['ten_danh_muc'] ?? 'Đặc sản Cà Mau') ?>
                 </span>
-                <span class="badge badge-ocop px-3 py-2">
+                <span class="badge bg-success px-3 py-2">
                     <i class="bi bi-award-fill me-1"></i> Chứng nhận OCOP Cà Mau
                 </span>
-                <span class="badge badge-geo px-3 py-2">
+                <span class="badge bg-primary px-3 py-2">
                     <i class="bi bi-geo-alt-fill me-1"></i> Chỉ dẫn địa lý Đất Mũi
                 </span>
             </div>
@@ -236,8 +266,8 @@ require_once __DIR__ . '/includes/navbar.php';
                 <?= nl2br(htmlspecialchars($dacSan['mo_ta_ngan'] ?: 'Sản vật trứ danh kết tinh từ hệ sinh thái đặc trưng của vùng đất Cà Mau.')) ?>
             </p>
 
-            <div class="card p-3 mb-4 border-0 shadow-sm rounded-3" style="background-color: var(--cm-bg-soft); border-left: 4px solid var(--cm-red) !important;">
-                <h5 class="fw-bold mb-3"><i class="bi bi-info-circle-fill text-danger me-2"></i>Thông tin đặc trưng</h5>
+            <div class="card p-3 mb-4 border-0 shadow-sm rounded-3 bg-light" style="border-left: 4px solid #198754 !important;">
+                <h5 class="fw-bold mb-3 text-success"><i class="bi bi-info-circle-fill me-2"></i>Thông tin đặc trưng</h5>
                 <div class="row g-2 small">
                     <div class="col-12 mb-1">
                         <strong>Khu vực / Nguồn gốc:</strong> <?= htmlspecialchars($dacSan['nguon_goc'] ?: 'Năm Căn, U Minh, Ngọc Hiển, Cà Mau') ?>
@@ -253,10 +283,10 @@ require_once __DIR__ . '/includes/navbar.php';
 
             <div class="d-flex gap-3 mb-4">
                 <a href="#danh-sach-co-so" class="btn btn-success px-4 py-2 fw-semibold">
-                    <i class="bi bi-shop me-1"></i> Xem nơi bán & Cơ sở (<?= count($danhSachCoSo) ?>)
+                    <i class="bi bi-geo-alt me-1"></i> Xem bản đồ & nơi bán (<?= count($danhSachCoSo) ?>)
                 </a>
-                <a href="dac-san.php" class="btn btn-outline-secondary px-4 py-2">
-                    <i class="bi bi-arrow-left me-1"></i> Danh sách đặc sản
+                <a href="ban-do.php?dac_san_id=<?= $dacSanId ?>" class="btn btn-outline-success px-4 py-2">
+                    <i class="bi bi-map me-1"></i> Mở bản đồ lớn
                 </a>
             </div>
         </div>
@@ -268,7 +298,7 @@ require_once __DIR__ . '/includes/navbar.php';
     ?>
     <?php if (!empty($noiDungDayDu)): ?>
         <section class="mt-5 p-4 rounded-4 bg-light border">
-            <h4 class="fw-bold mb-3 text-danger"><i class="bi bi-journal-text me-2"></i>Giới thiệu chi tiết sản vật</h4>
+            <h4 class="fw-bold mb-3 text-success"><i class="bi bi-journal-text me-2"></i>Giới thiệu chi tiết sản vật</h4>
             <div class="text-secondary" style="line-height: 1.8; white-space: pre-line;">
                 <?= htmlspecialchars($noiDungDayDu) ?>
             </div>
@@ -277,37 +307,60 @@ require_once __DIR__ . '/includes/navbar.php';
 
     <hr class="my-5">
 
-    <!-- Danh sách cơ sở liên kết -->
+    <!-- Danh sách cơ sở & Bản đồ liên kết -->
     <section id="danh-sach-co-so" class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
-                <h3 class="fw-bold mb-1">Cơ sở sản xuất & Điểm bán uy tín</h3>
+                <h3 class="fw-bold mb-1">Cơ sở sản xuất & Bản đồ điểm bán</h3>
                 <p class="text-muted mb-0">Địa chỉ mua trực tiếp sản phẩm chính gốc tại Cà Mau</p>
             </div>
+            <a href="ban-do.php?dac_san_id=<?= $dacSanId ?>" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-arrows-fullscreen me-1"></i> Xem toàn bộ trên bản đồ Cà Mau
+            </a>
         </div>
 
         <?php if (empty($danhSachCoSo)): ?>
             <div class="alert alert-info">Hiện chưa có thông tin cơ sở sản xuất liên kết cho sản phẩm này.</div>
         <?php else: ?>
             <div class="row g-4">
-                <?php foreach ($danhSachCoSo as $coSo): ?>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow-sm p-4 rounded-4">
-                            <h5 class="fw-bold text-danger mb-2"><?= htmlspecialchars($coSo['ten_co_so']) ?></h5>
-                            <p class="small text-muted mb-2">
-                                <i class="bi bi-geo-alt-fill text-danger me-1"></i> <?= htmlspecialchars($coSo['dia_chi']) ?>
-                            </p>
-                            <?php if (!empty($coSo['so_dien_thoai'])): ?>
-                                <p class="small text-muted mb-3">
-                                    <i class="bi bi-telephone-fill text-success me-1"></i> <?= htmlspecialchars($coSo['so_dien_thoai']) ?>
+                <!-- Cột trái: Danh sách các cơ sở -->
+                <div class="col-lg-5">
+                    <div class="d-flex flex-column gap-3" style="max-height: 420px; overflow-y: auto;">
+                        <?php foreach ($danhSachCoSo as $coSo): ?>
+                            <?php 
+                                $viDo = filter_var($coSo['vi_do'], FILTER_VALIDATE_FLOAT);
+                                $kinhDo = filter_var($coSo['kinh_do'], FILTER_VALIDATE_FLOAT);
+                                $coToaDo = ($viDo !== false && $kinhDo !== false && ($viDo != 0 || $kinhDo != 0));
+                            ?>
+                            <div class="card facility-item-card border p-3 rounded-3 shadow-sm" onclick="<?= $coToaDo ? "focusMapPoint({$coSo['id']}, {$viDo}, {$kinhDo})" : '' ?>">
+                                <h5 class="fw-bold text-success mb-1 h6"><?= htmlspecialchars($coSo['ten_co_so']) ?></h5>
+                                <p class="small text-muted mb-1">
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> <?= htmlspecialchars($coSo['dia_chi']) ?>
                                 </p>
-                            <?php endif; ?>
-                            <a href="<?= htmlspecialchars(taoGoogleMapsUrl($coSo)) ?>" target="_blank" class="btn btn-outline-danger btn-sm mt-auto">
-                                <i class="bi bi-map me-1"></i> Chỉ đường Google Maps
-                            </a>
-                        </div>
+                                <?php if (!empty($coSo['so_dien_thoai'])): ?>
+                                    <p class="small text-muted mb-2">
+                                        <i class="bi bi-telephone-fill text-success me-1"></i> <?= htmlspecialchars($coSo['so_dien_thoai']) ?>
+                                    </p>
+                                <?php endif; ?>
+                                <div class="d-flex gap-2 mt-auto pt-2 border-top">
+                                    <?php if ($coToaDo): ?>
+                                        <button type="button" class="btn btn-sm btn-success" onclick="focusMapPoint(<?= (int)$coSo['id'] ?>, <?= (float)$viDo ?>, <?= (float)$kinhDo ?>)">
+                                            <i class="bi bi-geo-alt"></i> Định vị
+                                        </button>
+                                    <?php endif; ?>
+                                    <a href="<?= htmlspecialchars(taoGoogleMapsUrl($coSo)) ?>" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                        Google Maps
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
-                <?php endforeach; ?>
+                </div>
+
+                <!-- Cột phải: Bản đồ hiển thị vị trí -->
+                <div class="col-lg-7">
+                    <div id="product-map"></div>
+                </div>
             </div>
         <?php endif; ?>
     </section>
@@ -370,6 +423,57 @@ function scrollThumbnails(direction) {
         });
     }
 }
+
+// Khởi tạo bản đồ cơ sở cho sản phẩm
+var productMap;
+var productMarkers = {};
+
+function focusMapPoint(id, lat, lng) {
+    if (productMap && productMarkers[id]) {
+        productMap.setView([lat, lng], 14, { animate: true });
+        productMarkers[id].openPopup();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    var coSoList = <?= json_encode($danhSachCoSo, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+    var mapEl = document.getElementById('product-map');
+    if (!mapEl || !coSoList || coSoList.length === 0) return;
+
+    var validLocs = coSoList.filter(function(item) {
+        var lat = parseFloat(item.vi_do);
+        var lng = parseFloat(item.kinh_do);
+        return !isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0);
+    });
+
+    if (validLocs.length === 0) {
+        mapEl.innerHTML = '<div class="p-5 text-center text-muted">Chưa có thông tin tọa độ bản đồ cho các cơ sở này.</div>';
+        return;
+    }
+
+    productMap = L.map('product-map').setView([parseFloat(validLocs[0].vi_do), parseFloat(validLocs[0].kinh_do)], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(productMap);
+
+    validLocs.forEach(function(item) {
+        var lat = parseFloat(item.vi_do);
+        var lng = parseFloat(item.kinh_do);
+        var popupHtml = `
+            <div style="max-width: 220px;">
+                <h6 style="color: #198754; font-weight: bold; margin-bottom: 5px;">${item.ten_co_so}</h6>
+                <p style="font-size: 13px; margin-bottom: 3px;"><b>Đ/C:</b> ${item.dia_chi}</p>
+                ${item.so_dien_thoai ? `<p style="font-size: 13px; margin-bottom: 0;"><b>SĐT:</b> ${item.so_dien_thoai}</p>` : ''}
+            </div>
+        `;
+        var marker = L.marker([lat, lng]).addTo(productMap).bindPopup(popupHtml);
+        productMarkers[item.id] = marker;
+    });
+
+    setTimeout(function() {
+        if (productMap) productMap.invalidateSize();
+    }, 250);
+});
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

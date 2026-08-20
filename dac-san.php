@@ -34,7 +34,6 @@ $where = ' WHERE ds.trang_thai = 1 ';
 $params = [];
 
 if ($tuKhoa !== '') {
-    // Sửa lỗi: Dùng LIKE trực tiếp trên chuỗi UTF-8 chuẩn xác
     $where .= ' AND (
         ds.ten_dac_san LIKE :tu_khoa1 
         OR dm.ten_danh_muc LIKE :tu_khoa2 
@@ -129,16 +128,86 @@ require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 ?>
 
+<style>
+    .specialty-banner {
+        padding: 70px 0;
+        text-align: center;
+        background: linear-gradient(rgba(10, 40, 28, 0.78), rgba(10, 40, 28, 0.78)),
+                    url("<?= htmlspecialchars($baseUrl ?? '') ?>/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
+    }
+    .specialty-banner h1 {
+        color: #ffffff !important;
+        font-weight: 800;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    }
+    .specialty-banner p {
+        color: #f1f8f4 !important;
+        font-size: 1.15rem;
+        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+    }
+    .specialty-card {
+        border: 0;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .specialty-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+    }
+    .card-img-wrapper {
+        position: relative;
+        width: 100%;
+        height: 220px;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+    .specialty-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .badge-floating-top {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: #dc3545;
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .card-body-custom {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+    .badge-category {
+        font-size: 12px;
+        color: #198754;
+        font-weight: 600;
+        margin-bottom: 6px;
+        display: inline-block;
+    }
+</style>
+
 <section class="specialty-banner">
     <div class="container text-center py-4">
-        <h1 class="fw-bold mb-2 text-white display-5">Đặc Sản Cà Mau</h1>
-        <p class="lead text-white-50 mb-0">Khám phá các sản vật đạt chuẩn OCOP và phong vị ẩm thực đất Mũi.</p>
+        <h1 class="fw-bold mb-2 display-5">Đặc Sản Cà Mau</h1>
+        <p class="lead mb-0">Khám phá các sản vật đạt chuẩn OCOP và phong vị ẩm thực đất Mũi.</p>
     </div>
 </section>
 
 <main class="container py-5">
     <!-- Bộ lọc tìm kiếm -->
-    <div class="card border-0 shadow-sm mb-5 rounded-4 overflow-hidden" style="background: var(--cm-card); border: 1px solid var(--cm-border) !important;">
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden" style="border: 1px solid #dee2e6 !important;">
         <div class="card-body p-4">
             <form method="get" class="row g-3 align-items-end">
                 <div class="col-lg-3 col-md-6">
@@ -180,7 +249,7 @@ require_once __DIR__ . '/includes/navbar.php';
 
                 <div class="col-lg-3 col-md-6">
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn-cm-primary flex-grow-1">
+                        <button type="submit" class="btn btn-success flex-grow-1">
                             <i class="bi bi-funnel"></i> Lọc dữ liệu
                         </button>
                         <a href="dac-san.php" class="btn btn-outline-secondary px-3" title="Xóa bộ lọc">Xóa</a>
@@ -197,25 +266,25 @@ require_once __DIR__ . '/includes/navbar.php';
         </div>
     </div>
 
-    <!-- Tiêu đề số lượng kết quả -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Tiêu đề & Nút chuyển nhanh sang Bản đồ lớn -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h2 class="h4 fw-bold mb-1">Danh Sách Đặc Sản</h2>
+            <h2 class="h4 fw-bold mb-1 text-success">Danh Sách Đặc Sản (<?= $tongDacSan ?>)</h2>
             <?php if ($tuKhoa !== ''): ?>
                 <p class="small text-muted mb-0">Kết quả tìm kiếm cho từ khóa: <strong>"<?= htmlspecialchars($tuKhoa) ?>"</strong></p>
             <?php endif; ?>
         </div>
-        <span class="badge" style="background: var(--cm-red); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px;">
-            <?= $tongDacSan ?> sản phẩm
-        </span>
+        <a href="ban-do.php<?= $danhMucId ? '?dac_san_id=' . $danhMucId : '' ?>" class="btn btn-outline-success">
+            <i class="bi bi-geo-alt-fill me-1"></i> Xem các điểm trên bản đồ Cà Mau
+        </a>
     </div>
 
     <?php if (empty($danhSachDacSan)): ?>
-        <div class="alert alert-warning text-center py-5 rounded-4 border-0 shadow-sm" style="background: #fff8e6;">
+        <div class="alert alert-warning text-center py-5 rounded-4 border-0 shadow-sm">
             <i class="bi bi-search fs-1 d-block mb-3 text-warning"></i>
             <h5 class="fw-bold text-dark">Không tìm thấy đặc sản nào</h5>
             <p class="text-muted small mb-3">Vui lòng thử lại với từ khóa khác hoặc xóa bớt tiêu chí lọc.</p>
-            <a href="dac-san.php" class="btn-cm-primary btn-sm">Xem tất cả đặc sản</a>
+            <a href="dac-san.php" class="btn btn-success btn-sm">Xem tất cả đặc sản</a>
         </div>
     <?php else: ?>
         <div class="row g-4">
@@ -225,12 +294,12 @@ require_once __DIR__ . '/includes/navbar.php';
                         <div class="card-img-wrapper">
                             <?php if (!empty($dacSan['hinh_anh'])): ?>
                                 <img 
-                                    src="<?= htmlspecialchars($baseUrl) ?>/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" 
+                                    src="<?= htmlspecialchars($baseUrl ?? '') ?>/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" 
                                     alt="<?= htmlspecialchars($dacSan['ten_dac_san']) ?>"
                                     class="specialty-image"
                                 >
                             <?php else: ?>
-                                <div class="specialty-no-image"><i class="bi bi-image fs-2"></i></div>
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted"><i class="bi bi-image fs-2"></i></div>
                             <?php endif; ?>
 
                             <?php if ((int)$dacSan['noi_bat'] === 1): ?>
@@ -248,12 +317,12 @@ require_once __DIR__ . '/includes/navbar.php';
                             </div>
 
                             <h3 class="h5 fw-bold mb-2 text-dark"><?= htmlspecialchars($dacSan['ten_dac_san']) ?></h3>
-                            <p class="limited-text">
+                            <p class="text-muted small mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                                 <?= htmlspecialchars($dacSan['mo_ta_ngan'] ?: 'Sản vật thơm ngon nức tiếng của vùng đất cuối trời Nam.') ?>
                             </p>
 
-                            <a href="<?= htmlspecialchars($baseUrl) ?>/chi-tiet-dac-san.php?id=<?= (int)$dacSan['id'] ?>" class="btn-cm-card mt-auto">
-                                <span>Xem chi tiết</span> <i class="bi bi-arrow-right"></i>
+                            <a href="<?= htmlspecialchars($baseUrl ?? '') ?>/chi-tiet-dac-san.php?id=<?= (int)$dacSan['id'] ?>" class="btn btn-outline-success btn-sm mt-auto w-100">
+                                <span>Xem chi tiết & Bản đồ</span> <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         </div>
                     </div>
