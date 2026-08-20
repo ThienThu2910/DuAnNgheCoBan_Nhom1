@@ -20,7 +20,7 @@ if (!$page || $page < 1) {
 $limit = 9;
 $offset = ($page - 1) * $limit;
 
-/* Lấy danh sách danh mục đang hiển thị */
+/* 1. Lấy danh sách danh mục */
 $stmtDanhMuc = $pdo->query('
     SELECT id, ten_danh_muc
     FROM danh_muc
@@ -29,24 +29,23 @@ $stmtDanhMuc = $pdo->query('
 ');
 $danhSachDanhMuc = $stmtDanhMuc->fetchAll();
 
-/* Điều kiện tìm kiếm và lọc kết hợp */
+/* 2. Điều kiện lọc dữ liệu */
 $where = ' WHERE ds.trang_thai = 1 ';
 $params = [];
 
 if ($tuKhoa !== '') {
-    // Chuyển từ khóa về chữ thường chuẩn UTF-8
-    $tuKhoaLower = mb_strtolower($tuKhoa, 'UTF-8');
-
-    // Dùng BINARY để phân biệt chính xác dấu tiếng Việt (cua != của != cửa)
+    // Sửa lỗi: Dùng LIKE trực tiếp trên chuỗi UTF-8 chuẩn xác
     $where .= ' AND (
-        LOWER(CAST(ds.ten_dac_san AS BINARY)) LIKE :tu_khoa1
-        OR LOWER(CAST(dm.ten_danh_muc AS BINARY)) LIKE :tu_khoa2
-        OR LOWER(CAST(ds.mo_ta_ngan AS BINARY)) LIKE :tu_khoa3
+        ds.ten_dac_san LIKE :tu_khoa1 
+        OR dm.ten_danh_muc LIKE :tu_khoa2 
+        OR ds.mo_ta_ngan LIKE :tu_khoa3 
+        OR ds.mo_ta_chi_tiet LIKE :tu_khoa4
     ) ';
-
-    $params['tu_khoa1'] = '%' . $tuKhoaLower . '%';
-    $params['tu_khoa2'] = '%' . $tuKhoaLower . '%';
-    $params['tu_khoa3'] = '%' . $tuKhoaLower . '%';
+    $searchWildcard = '%' . $tuKhoa . '%';
+    $params['tu_khoa1'] = $searchWildcard;
+    $params['tu_khoa2'] = $searchWildcard;
+    $params['tu_khoa3'] = $searchWildcard;
+    $params['tu_khoa4'] = $searchWildcard;
 }
 
 if ($danhMucId) {
@@ -63,7 +62,7 @@ if ($khuVuc !== '') {
     $params['khu_vuc'] = '%' . $khuVuc . '%';
 }
 
-/* Đếm tổng số đặc sản */
+/* 3. Đếm tổng số lượng kết quả */
 $sqlDem = '
     SELECT COUNT(DISTINCT ds.id) AS tong
     FROM dac_san AS ds
@@ -74,8 +73,7 @@ $sqlDem = '
 
 $stmtDem = $pdo->prepare($sqlDem);
 $stmtDem->execute($params);
-$ketQuaDem = $stmtDem->fetch();
-$tongDacSan = (int) ($ketQuaDem['tong'] ?? 0);
+$tongDacSan = (int) ($stmtDem->fetch()['tong'] ?? 0);
 
 $tongTrang = max(1, (int) ceil($tongDacSan / $limit));
 if ($page > $tongTrang) {
@@ -83,7 +81,7 @@ if ($page > $tongTrang) {
     $offset = ($page - 1) * $limit;
 }
 
-/* Lấy danh sách đặc sản */
+/* 4. Lấy danh sách hiển thị theo phân trang */
 $sql = '
     SELECT DISTINCT
         ds.id,
@@ -111,7 +109,6 @@ $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $danhSachDacSan = $stmt->fetchAll();
 
-/* Tạo đường dẫn phân trang giữ nguyên toàn bộ bộ lọc */
 function taoDuongDanTrang(
     int $soTrang,
     string $tuKhoa,
@@ -132,42 +129,36 @@ require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 ?>
 
-<style>
-    .specialty-banner {
-        padding: 60px 0;
-        color: #ffffff;
-        text-align: center;
-        background: linear-gradient(rgba(56, 16, 21, 0.85), rgba(56, 16, 21, 0.85)), url("<?= htmlspecialchars($baseUrl) ?>/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
-    }
-    .specialty-card { overflow: hidden; border: 0; border-radius: 12px; transition: transform 0.25s ease, box-shadow 0.25s ease; }
-    .specialty-card:hover { transform: translateY(-5px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12); }
-    .specialty-card img, .specialty-no-image { width: 100%; height: 220px; object-fit: cover; }
-    .specialty-no-image { display: flex; align-items: center; justify-content: center; color: #6c757d; background-color: #e9ecef; }
-    .specialty-description { display: -webkit-box; min-height: 72px; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
-</style>
-
 <section class="specialty-banner">
-    <div class="container">
-        <h1 class="fw-bold">Đặc sản Cà Mau</h1>
-        <p class="lead mb-0">Khám phá những sản vật mang đậm hương vị vùng đất cực Nam.</p>
+    <div class="container text-center py-4">
+        <h1 class="fw-bold mb-2 text-white display-5">Đặc Sản Cà Mau</h1>
+        <p class="lead text-white-50 mb-0">Khám phá các sản vật đạt chuẩn OCOP và phong vị ẩm thực đất Mũi.</p>
     </div>
 </section>
 
 <main class="container py-5">
-    <div class="card border-0 shadow-sm mb-5">
+    <!-- Bộ lọc tìm kiếm -->
+    <div class="card border-0 shadow-sm mb-5 rounded-4 overflow-hidden" style="background: var(--cm-card); border: 1px solid var(--cm-border) !important;">
         <div class="card-body p-4">
             <form method="get" class="row g-3 align-items-end">
                 <div class="col-lg-3 col-md-6">
-                    <label for="q" class="form-label fw-semibold">Từ khóa tìm kiếm</label>
-                    <input type="text" id="q" name="q" class="form-control" placeholder="Tên đặc sản, tôm, cua..." value="<?= htmlspecialchars($tuKhoa) ?>">
+                    <label for="q" class="form-label fw-semibold small text-muted">Từ khóa tìm kiếm</label>
+                    <input 
+                        type="text" 
+                        id="q" 
+                        name="q" 
+                        class="form-control" 
+                        placeholder="Tôm khô, mật ong, cua..." 
+                        value="<?= htmlspecialchars($tuKhoa) ?>"
+                    >
                 </div>
 
                 <div class="col-lg-3 col-md-6">
-                    <label for="danh_muc_id" class="form-label fw-semibold">Danh mục</label>
+                    <label for="danh_muc_id" class="form-label fw-semibold small text-muted">Phân loại danh mục</label>
                     <select id="danh_muc_id" name="danh_muc_id" class="form-select">
-                        <option value="">Tất cả danh mục</option>
+                        <option value="">-- Tất cả danh mục --</option>
                         <?php foreach ($danhSachDanhMuc as $danhMuc): ?>
-                            <option value="<?= (int) $danhMuc['id'] ?>" <?= $danhMucId === (int) $danhMuc['id'] ? 'selected' : '' ?>>
+                            <option value="<?= (int)$danhMuc['id'] ?>" <?= $danhMucId === (int)$danhMuc['id'] ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($danhMuc['ten_danh_muc']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -175,83 +166,107 @@ require_once __DIR__ . '/includes/navbar.php';
                 </div>
 
                 <div class="col-lg-3 col-md-6">
-                    <label for="khu_vuc" class="form-label fw-semibold">Khu vực địa bàn</label>
+                    <label for="khu_vuc" class="form-label fw-semibold small text-muted">Khu vực địa bàn</label>
                     <select id="khu_vuc" name="khu_vuc" class="form-select">
-                        <option value="">Tất cả địa bàn</option>
+                        <option value="">-- Toàn tỉnh Cà Mau --</option>
                         <option value="Năm Căn" <?= $khuVuc === 'Năm Căn' ? 'selected' : '' ?>>Năm Căn</option>
                         <option value="U Minh" <?= $khuVuc === 'U Minh' ? 'selected' : '' ?>>U Minh</option>
-                        <option value="Ngọc Hiển" <?= $khuVuc === 'Ngọc Hiển' ? 'selected' : '' ?>>Ngọc Hiển (Rạch Gốc, Đất Mũi)</option>
-                        <option value="Cái Nước" <?= $khuVuc === 'Cái Nước' ? 'selected' : '' ?>>Cái Nước</option>
+                        <option value="Ngọc Hiển" <?= $khuVuc === 'Ngọc Hiển' ? 'selected' : '' ?>>Ngọc Hiển (Đất Mũi, Rạch Gốc)</option>
                         <option value="Trần Văn Thời" <?= $khuVuc === 'Trần Văn Thời' ? 'selected' : '' ?>>Trần Văn Thời</option>
+                        <option value="Cái Nước" <?= $khuVuc === 'Cái Nước' ? 'selected' : '' ?>>Cái Nước</option>
                         <option value="Cà Mau" <?= $khuVuc === 'Cà Mau' ? 'selected' : '' ?>>TP. Cà Mau</option>
                     </select>
                 </div>
 
                 <div class="col-lg-3 col-md-6">
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-success flex-grow-1">Lọc đặc sản</button>
-                        <a href="dac-san.php" class="btn btn-outline-secondary" title="Đặt lại bộ lọc">Xóa lọc</a>
+                        <button type="submit" class="btn-cm-primary flex-grow-1">
+                            <i class="bi bi-funnel"></i> Lọc dữ liệu
+                        </button>
+                        <a href="dac-san.php" class="btn btn-outline-secondary px-3" title="Xóa bộ lọc">Xóa</a>
                     </div>
                 </div>
 
                 <div class="col-12 mt-2">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="noi_bat" value="1" id="noi_bat" <?= $noiBat !== null ? 'checked' : '' ?>>
-                        <label class="form-check-label text-muted" for="noi_bat">Chỉ hiển thị các đặc sản nổi bật</label>
+                        <label class="form-check-label small text-muted" for="noi_bat">Chỉ hiển thị các đặc sản tiêu biểu (Nổi bật)</label>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <!-- Tiêu đề số lượng kết quả -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="section-title mb-1">Danh sách đặc sản</h2>
-            <p class="text-muted mb-0">Tìm thấy <strong><?= $tongDacSan ?></strong> đặc sản phù hợp.</p>
+            <h2 class="h4 fw-bold mb-1">Danh Sách Đặc Sản</h2>
+            <?php if ($tuKhoa !== ''): ?>
+                <p class="small text-muted mb-0">Kết quả tìm kiếm cho từ khóa: <strong>"<?= htmlspecialchars($tuKhoa) ?>"</strong></p>
+            <?php endif; ?>
         </div>
+        <span class="badge" style="background: var(--cm-red); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px;">
+            <?= $tongDacSan ?> sản phẩm
+        </span>
     </div>
 
     <?php if (empty($danhSachDacSan)): ?>
-        <div class="alert alert-warning text-center py-4">Không tìm thấy đặc sản phù hợp với bộ lọc hiện tại.</div>
+        <div class="alert alert-warning text-center py-5 rounded-4 border-0 shadow-sm" style="background: #fff8e6;">
+            <i class="bi bi-search fs-1 d-block mb-3 text-warning"></i>
+            <h5 class="fw-bold text-dark">Không tìm thấy đặc sản nào</h5>
+            <p class="text-muted small mb-3">Vui lòng thử lại với từ khóa khác hoặc xóa bớt tiêu chí lọc.</p>
+            <a href="dac-san.php" class="btn-cm-primary btn-sm">Xem tất cả đặc sản</a>
+        </div>
     <?php else: ?>
         <div class="row g-4">
             <?php foreach ($danhSachDacSan as $dacSan): ?>
                 <div class="col-sm-6 col-lg-4">
-                    <div class="card specialty-card h-100 shadow-sm">
-                        <div class="position-relative">
+                    <div class="specialty-card">
+                        <div class="card-img-wrapper">
                             <?php if (!empty($dacSan['hinh_anh'])): ?>
-                                <img src="<?= htmlspecialchars($baseUrl) ?>/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" alt="<?= htmlspecialchars($dacSan['ten_dac_san']) ?>">
+                                <img 
+                                    src="<?= htmlspecialchars($baseUrl) ?>/assets/uploads/dac-san/<?= htmlspecialchars($dacSan['hinh_anh']) ?>" 
+                                    alt="<?= htmlspecialchars($dacSan['ten_dac_san']) ?>"
+                                    class="specialty-image"
+                                >
                             <?php else: ?>
-                                <div class="specialty-no-image">Chưa có hình ảnh</div>
+                                <div class="specialty-no-image"><i class="bi bi-image fs-2"></i></div>
                             <?php endif; ?>
 
-                            <?php if ((int) $dacSan['noi_bat'] === 1): ?>
-                                <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-3">Nổi bật</span>
+                            <?php if ((int)$dacSan['noi_bat'] === 1): ?>
+                                <span class="badge-floating-top">
+                                    <i class="bi bi-star-fill me-1"></i> Nổi bật
+                                </span>
                             <?php endif; ?>
                         </div>
 
-                        <div class="card-body d-flex flex-column">
-                            <div class="mb-2">
-                                <span class="badge bg-success-subtle text-success">
-                                    <?= htmlspecialchars($dacSan['ten_danh_muc'] ?? 'Chưa phân loại') ?>
+                        <div class="card-body-custom">
+                            <div>
+                                <span class="badge-category">
+                                    <?= htmlspecialchars($dacSan['ten_danh_muc'] ?? 'Đặc sản Cà Mau') ?>
                                 </span>
                             </div>
 
-                            <h3 class="h5 fw-bold"><?= htmlspecialchars($dacSan['ten_dac_san']) ?></h3>
-                            <p class="text-muted specialty-description"><?= htmlspecialchars($dacSan['mo_ta_ngan'] ?: 'Đang cập nhật thông tin giới thiệu.') ?></p>
+                            <h3 class="h5 fw-bold mb-2 text-dark"><?= htmlspecialchars($dacSan['ten_dac_san']) ?></h3>
+                            <p class="limited-text">
+                                <?= htmlspecialchars($dacSan['mo_ta_ngan'] ?: 'Sản vật thơm ngon nức tiếng của vùng đất cuối trời Nam.') ?>
+                            </p>
 
-                            <a href="<?= htmlspecialchars($baseUrl) ?>/chi-tiet-dac-san.php?id=<?= (int) $dacSan['id'] ?>" class="btn btn-success mt-auto">Xem chi tiết</a>
+                            <a href="<?= htmlspecialchars($baseUrl) ?>/chi-tiet-dac-san.php?id=<?= (int)$dacSan['id'] ?>" class="btn-cm-card mt-auto">
+                                <span>Xem chi tiết</span> <i class="bi bi-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
 
+        <!-- Phân trang -->
         <?php if ($tongTrang > 1): ?>
             <nav class="mt-5" aria-label="Phân trang đặc sản">
                 <ul class="pagination justify-content-center">
                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                        <a class="page-link" href="<?= htmlspecialchars(taoDuongDanTrang(max(1, $page - 1), $tuKhoa, $danhMucId ?: null, $khuVuc, $noiBat)) ?>">Trước</a>
+                        <a class="page-link" href="<?= htmlspecialchars(taoDuongDanTrang(max(1, $page - 1), $tuKhoa, $danhMucId ?: null, $khuVuc, $noiBat)) ?>">« Trước</a>
                     </li>
 
                     <?php for ($i = 1; $i <= $tongTrang; $i++): ?>
@@ -261,7 +276,7 @@ require_once __DIR__ . '/includes/navbar.php';
                     <?php endfor; ?>
 
                     <li class="page-item <?= $page >= $tongTrang ? 'disabled' : '' ?>">
-                        <a class="page-link" href="<?= htmlspecialchars(taoDuongDanTrang(min($tongTrang, $page + 1), $tuKhoa, $danhMucId ?: null, $khuVuc, $noiBat)) ?>">Sau</a>
+                        <a class="page-link" href="<?= htmlspecialchars(taoDuongDanTrang(min($tongTrang, $page + 1), $tuKhoa, $danhMucId ?: null, $khuVuc, $noiBat)) ?>">Sau »</a>
                     </li>
                 </ul>
             </nav>

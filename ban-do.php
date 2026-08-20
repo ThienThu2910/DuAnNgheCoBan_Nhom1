@@ -70,11 +70,23 @@ require_once __DIR__ . '/includes/navbar.php';
 
 <style>
     .map-banner {
-        padding: 50px 0;
-        color: #ffffff;
+        padding: 55px 0;
         text-align: center;
-        background: linear-gradient(rgba(56, 16, 21, 0.85), rgba(56, 16, 21, 0.85)),
+        background: linear-gradient(rgba(35, 10, 14, 0.8), rgba(35, 10, 14, 0.8)),
                     url("<?= htmlspecialchars($baseUrl) ?>/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
+    }
+
+    .map-banner h1 {
+        color: #ffffff !important;
+        font-weight: 800;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    }
+
+    .map-banner p {
+        color: #fdf5f5 !important;
+        font-size: 1.1rem;
+        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+        opacity: 0.95;
     }
 
     #detail-map {

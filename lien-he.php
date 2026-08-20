@@ -79,12 +79,25 @@ require_once __DIR__ . '/includes/navbar.php';
 
 <style>
     .contact-banner {
-        padding: 60px 0;
-        color: #ffffff;
+        padding: 65px 0;
         text-align: center;
-        background: linear-gradient(rgba(20, 77, 54, 0.85), rgba(20, 77, 54, 0.85)),
+        background: linear-gradient(rgba(10, 40, 28, 0.78), rgba(10, 40, 28, 0.78)),
                     url("<?= htmlspecialchars($baseUrl) ?>/assets/images/banner-ca-mau.jpg") center / cover no-repeat;
     }
+
+    .contact-banner h1 {
+        color: #ffffff !important;
+        font-weight: 800;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    }
+
+    .contact-banner p {
+        color: #f1f8f4 !important;
+        font-size: 1.15rem;
+        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+        opacity: 0.95;
+    }
+
     .contact-card {
         border: 0;
         border-radius: 12px;

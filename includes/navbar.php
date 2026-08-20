@@ -1,237 +1,191 @@
 <?php
-
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-$currentPage = $currentPage ?? '';
+$isAdmin = !empty($_SESSION['admin_id']);
+$isUser = !empty($_SESSION['user_id']);
 
-if (!isset($baseUrl) || empty($baseUrl)) {
+if (!isset($baseUrl)) {
     $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
     $baseUrl = preg_replace('#/(admin|api|includes).*$#', '', $scriptDir);
     $baseUrl = rtrim($baseUrl, '/');
 }
 ?>
-
-<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
-    <div class="container navbar-inner">
-
-        <!-- LOGO -->
-        <a class="navbar-brand" href="<?= htmlspecialchars($baseUrl) ?>/index.php">
-            <span>Đặc sản Cà Mau</span>
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top py-2 shadow-sm" style="background-color: #1a0d0f !important; z-index: 1040;">
+    <div class="container">
+        <!-- Logo thương hiệu -->
+        <a class="navbar-brand fw-bold text-white fs-5 me-3" href="<?= $baseUrl ?>/index.php">
+            Đặc sản Cà Mau
         </a>
 
-        <!-- MOBILE MENU -->
-        <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#mainNavbar"
-            aria-controls="mainNavbar"
-            aria-expanded="false"
-            aria-label="Mở menu"
-        >
+        <!-- Nút bật menu mobile -->
+        <button class="navbar-toggler py-1 px-2 border-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="mainNavbar">
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <!-- Ô TÌM KIẾM NỔI BẬT & LIVE SEARCH -->
+            <div class="position-relative my-2 my-lg-0 me-auto">
+                <form class="d-flex" action="<?= $baseUrl ?>/dac-san.php" method="get" id="navSearchForm">
+                    <div class="input-group input-group-sm nav-search-box">
+                        <span class="input-group-text bg-white border-0 text-muted ps-3">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input 
+                            class="form-control border-0 bg-white text-dark ps-2 pe-3" 
+                            type="search" 
+                            name="q" 
+                            id="navSearchInput"
+                            placeholder="Tìm đặc sản, cơ sở..." 
+                            value="<?= htmlspecialchars($_GET['q'] ?? '') ?>"
+                            autocomplete="off"
+                            style="width: 220px; font-size: 0.88rem; border-radius: 0 20px 20px 0;"
+                        >
+                    </div>
+                </form>
 
-            <!-- SEARCH -->
-            <div class="search-box-container position-relative">
-                <div class="search-box">
-                    <i class="bi bi-search" aria-hidden="true"></i>
-                    <input
-                        type="text"
-                        id="live-search-input"
-                        placeholder="Tìm đặc sản, cơ sở..."
-                        autocomplete="off"
-                        aria-label="Tìm kiếm"
-                    >
-                </div>
-                <div
-                    id="live-search-results"
-                    class="list-group position-absolute w-100 d-none"
-                ></div>
+                <!-- Khung gợi ý kết quả Live Search -->
+                <div id="liveSearchResult" class="live-search-dropdown shadow-lg"></div>
             </div>
 
-            <!-- MAIN MENU -->
-            <ul class="navbar-nav ms-auto align-items-lg-center main-menu">
+            <!-- Menu chính -->
+            <ul class="navbar-nav mb-2 mb-lg-0 align-items-lg-center gap-lg-1">
                 <li class="nav-item">
-                    <a
-                        class="nav-link <?= $currentPage === 'trang-chu' ? 'active' : '' ?>"
-                        href="<?= htmlspecialchars($baseUrl) ?>/index.php"
-                    >Trang chủ</a>
+                    <a class="nav-link px-2 py-1 <?= ($currentPage ?? '') === 'trang-chu' ? 'active text-warning fw-bold' : 'text-white-50' ?>" href="<?= $baseUrl ?>/index.php">Trang chủ</a>
                 </li>
-
                 <li class="nav-item">
-                    <a
-                        class="nav-link <?= $currentPage === 'dac-san' ? 'active' : '' ?>"
-                        href="<?= htmlspecialchars($baseUrl) ?>/dac-san.php"
-                    >Đặc sản</a>
+                    <a class="nav-link px-2 py-1 <?= ($currentPage ?? '') === 'dac-san' ? 'active text-warning fw-bold' : 'text-white-50' ?>" href="<?= $baseUrl ?>/dac-san.php">Đặc sản</a>
                 </li>
-
                 <li class="nav-item">
-                    <a
-                        class="nav-link <?= $currentPage === 'co-so' ? 'active' : '' ?>"
-                        href="<?= htmlspecialchars($baseUrl) ?>/co-so-san-xuat.php"
-                    >Cơ sở sản xuất</a>
+                    <a class="nav-link px-2 py-1 <?= ($currentPage ?? '') === 'co-so' ? 'active text-warning fw-bold' : 'text-white-50' ?>" href="<?= $baseUrl ?>/co-so-san-xuat.php">Cơ sở sản xuất</a>
                 </li>
-
                 <li class="nav-item">
-                    <a
-                        class="nav-link <?= $currentPage === 'ban-do' ? 'active' : '' ?>"
-                        href="<?= htmlspecialchars($baseUrl) ?>/ban-do.php"
-                    >Bản đồ</a>
+                    <a class="nav-link px-2 py-1 <?= ($currentPage ?? '') === 'ban-do' ? 'active text-warning fw-bold' : 'text-white-50' ?>" href="<?= $baseUrl ?>/ban-do.php">Bản đồ</a>
                 </li>
-
                 <li class="nav-item">
-                    <a
-                        class="nav-link <?= $currentPage === 'bai-viet' ? 'active' : '' ?>"
-                        href="<?= htmlspecialchars($baseUrl) ?>/bai-viet.php"
-                    >Câu chuyện</a>
+                    <a class="nav-link px-2 py-1 <?= in_array($currentPage ?? '', ['cau-chuyen', 'bai-viet'], true) ? 'active text-warning fw-bold' : 'text-white-50' ?>" href="<?= $baseUrl ?>/bai-viet.php">Câu chuyện</a>
                 </li>
-
                 <li class="nav-item">
-                    <a
-                        class="nav-link <?= $currentPage === 'lien-he' ? 'active' : '' ?>"
-                        href="<?= htmlspecialchars($baseUrl) ?>/lien-he.php"
-                    >Liên hệ</a>
+                    <a class="nav-link px-2 py-1 <?= ($currentPage ?? '') === 'lien-he' ? 'active text-warning fw-bold' : 'text-white-50' ?>" href="<?= $baseUrl ?>/lien-he.php">Liên hệ</a>
                 </li>
             </ul>
 
-            <!-- ACCOUNT -->
-            <div class="account-actions">
-                <?php if (!empty($_SESSION['admin_id'])): ?>
-                    <a
-                        class="nav-action nav-action-primary"
-                        href="<?= htmlspecialchars($baseUrl) ?>/admin/index.php"
-                    >Quản trị</a>
-
-                    <a
-                        class="nav-action nav-action-outline"
-                        href="<?= htmlspecialchars($baseUrl) ?>/logout.php"
-                    >Đăng xuất</a>
-
-                <?php elseif (!empty($_SESSION['user_id'])): ?>
-                    <a
-                        class="nav-action nav-action-primary"
-                        href="<?= htmlspecialchars($baseUrl) ?>/tai-khoan.php"
-                    >Tài khoản</a>
-
-                    <a
-                        class="nav-action nav-action-outline"
-                        href="<?= htmlspecialchars($baseUrl) ?>/logout.php"
-                    >Đăng xuất</a>
-
+            <!-- Nhóm nút Quản trị / Tài khoản / Theme toggle -->
+            <div class="d-flex align-items-center gap-2 ms-lg-3 mt-2 mt-lg-0">
+                <?php if ($isAdmin): ?>
+                    <a href="<?= $baseUrl ?>/admin/index.php" class="btn btn-sm btn-danger py-1 px-2" style="font-size: 0.8rem;">
+                        <i class="bi bi-speedometer2 me-1"></i> Quản trị
+                    </a>
+                    <a href="<?= $baseUrl ?>/admin/logout.php" class="btn btn-sm btn-outline-light py-1 px-2" style="font-size: 0.8rem;">
+                        Đăng xuất
+                    </a>
+                <?php elseif ($isUser): ?>
+                    <a href="<?= $baseUrl ?>/tai-khoan.php" class="btn btn-sm btn-outline-warning py-1 px-2" style="font-size: 0.8rem;">
+                        <i class="bi bi-person-circle me-1"></i> <?= htmlspecialchars((string)$_SESSION['user_name']) ?>
+                    </a>
+                    <a href="<?= $baseUrl ?>/logout.php" class="btn btn-sm btn-outline-light py-1 px-2" style="font-size: 0.8rem;">
+                        Đăng xuất
+                    </a>
                 <?php else: ?>
-                    <a
-                        class="nav-action nav-action-primary"
-                        href="<?= htmlspecialchars($baseUrl) ?>/login.php"
-                    >Đăng nhập</a>
+                    <a href="<?= $baseUrl ?>/login.php" class="btn btn-sm btn-outline-light py-1 px-2" style="font-size: 0.8rem;">
+                        Đăng nhập
+                    </a>
                 <?php endif; ?>
 
-                <!-- THEME TOGGLE -->
-                <button
-                    type="button"
-                    class="theme-toggle"
-                    id="themeToggle"
-                    aria-label="Chuyển chế độ sáng tối"
-                    title="Chuyển chế độ sáng tối"
-                >
-                    <span id="themeIcon">☾</span>
+                <button class="btn btn-sm btn-outline-secondary text-white-50 p-1 px-2 border-secondary" type="button" id="themeToggleBtn" onclick="toggleTheme()" title="Đổi giao diện Sáng/Tối">
+                    <i class="bi bi-moon-stars" id="themeIcon"></i>
                 </button>
             </div>
-
         </div>
     </div>
 </nav>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const input = document.getElementById('live-search-input');
-    const resultsBox = document.getElementById('live-search-results');
-    const baseUrl = <?= json_encode($baseUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
-    let timeout = null;
+function toggleTheme() {
+    var html = document.documentElement;
+    var current = html.getAttribute('data-theme') || 'light';
+    var next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    try { localStorage.setItem('cm-theme', next); } catch(e) {}
+    updateThemeIcon(next);
+}
 
-    if (input && resultsBox) {
-        input.addEventListener('input', function () {
-            clearTimeout(timeout);
+function updateThemeIcon(theme) {
+    var icon = document.getElementById('themeIcon');
+    if (icon) {
+        icon.className = theme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    var theme = document.documentElement.getAttribute('data-theme') || 'light';
+    updateThemeIcon(theme);
+
+    // XỬ LÝ LIVE SEARCH GỢI Ý TỨC THÌ
+    const searchInput = document.getElementById('navSearchInput');
+    const resultBox = document.getElementById('liveSearchResult');
+    let debounceTimer;
+
+    if (searchInput && resultBox) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
             const query = this.value.trim();
 
             if (query.length < 2) {
-                resultsBox.classList.add('d-none');
-                resultsBox.innerHTML = '';
+                resultBox.innerHTML = '';
+                resultBox.style.display = 'none';
                 return;
             }
 
-            timeout = setTimeout(() => {
-                fetch(baseUrl + '/api/live-search.php?q=' + encodeURIComponent(query))
+            debounceTimer = setTimeout(() => {
+                fetch('<?= $baseUrl ?>/api/live-search.php?q=' + encodeURIComponent(query))
                     .then(res => res.json())
                     .then(data => {
-                        resultsBox.innerHTML = '';
-                        if (!Array.isArray(data) || data.length === 0) {
-                            resultsBox.innerHTML = '<div class="list-group-item small text-muted">Không tìm thấy kết quả</div>';
-                        } else {
-                            data.forEach(item => {
-                                const isDacSan = item.loai === 'dac-san';
-                                const url = isDacSan
-                                    ? baseUrl + '/chi-tiet-dac-san.php?id=' + encodeURIComponent(item.id)
-                                    : baseUrl + '/ban-do.php?co_so_id=' + encodeURIComponent(item.id);
-                                const folder = isDacSan ? 'dac-san' : 'co-so';
-                                const image = item.hinh_anh
-                                    ? baseUrl + '/assets/uploads/' + folder + '/' + item.hinh_anh
-                                    : baseUrl + '/assets/images/banner-ca-mau.jpg';
-
-                                resultsBox.insertAdjacentHTML(
-                                    'beforeend',
-                                    `<a href="${url}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 p-2">
-                                        <img src="${image}" alt="" class="search-result-image" onerror="this.src='${baseUrl}/assets/images/banner-ca-mau.jpg'">
-                                        <div class="small overflow-hidden">
-                                            <div class="fw-bold text-truncate">${item.ten ?? ''}</div>
-                                            <span class="search-type">${isDacSan ? 'Đặc sản' : 'Cơ sở'}</span>
-                                        </div>
-                                    </a>`
-                                );
-                            });
+                        if (!data || data.length === 0) {
+                            resultBox.innerHTML = '<div class="p-3 text-muted small text-center">Không tìm thấy kết quả nào.</div>';
+                            resultBox.style.display = 'block';
+                            return;
                         }
-                        resultsBox.classList.remove('d-none');
+
+                        let html = '<div class="list-group list-group-flush rounded-3">';
+                        data.forEach(item => {
+                            const link = item.loai === 'dac-san' 
+                                ? '<?= $baseUrl ?>/chi-tiet-dac-san.php?id=' + item.id 
+                                : '<?= $baseUrl ?>/co-so-san-xuat.php?q=' + encodeURIComponent(item.ten);
+                            
+                            const badge = item.loai === 'dac-san' 
+                                ? '<span class="badge bg-danger ms-auto" style="font-size: 10px;">Đặc sản</span>'
+                                : '<span class="badge bg-primary ms-auto" style="font-size: 10px;">Cơ sở</span>';
+
+                            const imgUrl = item.hinh_anh 
+                                ? '<?= $baseUrl ?>/assets/uploads/' + (item.loai === 'dac-san' ? 'dac-san/' : 'co-so/') + item.hinh_anh
+                                : '';
+
+                            html += `
+                                <a href="${link}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 p-2">
+                                    ${imgUrl ? `<img src="${imgUrl}" class="rounded" style="width: 38px; height: 38px; object-fit: cover;">` : '<div class="bg-light rounded d-flex align-items-center justify-content-center text-muted" style="width: 38px; height: 38px;"><i class="bi bi-image"></i></div>'}
+                                    <div class="small fw-semibold text-dark text-truncate" style="max-width: 170px;">${item.ten}</div>
+                                    ${badge}
+                                </a>
+                            `;
+                        });
+                        html += '</div>';
+
+                        resultBox.innerHTML = html;
+                        resultBox.style.display = 'block';
                     })
                     .catch(() => {
-                        resultsBox.classList.add('d-none');
+                        resultBox.style.display = 'none';
                     });
-            }, 300);
+            }, 250);
         });
 
-        document.addEventListener('click', function (e) {
-            if (!input.contains(e.target) && !resultsBox.contains(e.target)) {
-                resultsBox.classList.add('d-none');
+        // Đóng dropdown khi bấm ra ngoài
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !resultBox.contains(e.target)) {
+                resultBox.style.display = 'none';
             }
-        });
-    }
-
-    const html = document.documentElement;
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = document.getElementById('themeIcon');
-
-    function setTheme(theme) {
-        const nextTheme = theme === 'dark' ? 'dark' : 'light';
-        html.setAttribute('data-theme', nextTheme);
-        try {
-            localStorage.setItem('cm-theme', nextTheme);
-        } catch (e) {}
-
-        if (themeIcon) {
-            themeIcon.textContent = nextTheme === 'dark' ? '☀' : '☾';
-        }
-    }
-
-    let savedTheme = localStorage.getItem('cm-theme') || 'light';
-    setTheme(savedTheme);
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const current = html.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-            setTheme(current === 'dark' ? 'light' : 'dark');
         });
     }
 });

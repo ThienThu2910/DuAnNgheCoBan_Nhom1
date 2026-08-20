@@ -4,643 +4,273 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../includes/functions.php';
 
-$loi = [];
+$thongBao = $_SESSION['success'] ?? '';
+$loi = $_SESSION['error'] ?? '';
+unset($_SESSION['success'], $_SESSION['error']);
 
-$danhMucId = 0;
+// 1. Lấy danh sách danh mục
+$stmtDanhMuc = $pdo->query('SELECT id, ten_danh_muc FROM danh_muc WHERE trang_thai = 1 ORDER BY thu_tu ASC, ten_danh_muc ASC');
+$danhSachDanhMuc = $stmtDanhMuc->fetchAll();
+
+// 2. Kiểm tra danh sách các cột thực tế đang có trong bảng dac_san
+$existingCols = [];
+try {
+    $existingCols = $pdo->query('SHOW COLUMNS FROM dac_san')->fetchAll(PDO::FETCH_COLUMN);
+} catch (\PDOException $e) {
+    // Bỏ qua nếu lỗi
+}
+
 $tenDacSan = '';
-$slug = '';
+$danhMucId = null;
 $moTaNgan = '';
-$nguonGoc = '';
-$moTaChiTiet = '';
-$cachSuDung = '';
-$cachBaoQuan = '';
+$noiDungChiTiet = '';
 $noiBat = 0;
 $trangThai = 1;
 
-/**
- * Chuyển chuỗi tiếng Việt thành slug.
- */
-function taoSlug(string $chuoi): string
-{
-    $chuoi = mb_strtolower(trim($chuoi), 'UTF-8');
-
-    $tim = [
-        'á', 'à', 'ả', 'ã', 'ạ', 'ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ',
-        'â', 'ấ', 'ầ', 'ẩ', 'ẫ', 'ậ',
-        'é', 'è', 'ẻ', 'ẽ', 'ẹ', 'ê', 'ế', 'ề', 'ể', 'ễ', 'ệ',
-        'í', 'ì', 'ỉ', 'ĩ', 'ị',
-        'ó', 'ò', 'ỏ', 'õ', 'ọ', 'ô', 'ố', 'ồ', 'ổ', 'ỗ', 'ộ',
-        'ơ', 'ớ', 'ờ', 'ở', 'ỡ', 'ợ',
-        'ú', 'ù', 'ủ', 'ũ', 'ụ', 'ư', 'ứ', 'ừ', 'ử', 'ữ', 'ự',
-        'ý', 'ỳ', 'ỷ', 'ỹ', 'ỵ',
-        'đ'
-    ];
-
-    $thay = [
-        'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a',
-        'a', 'a', 'a', 'a', 'a', 'a',
-        'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e',
-        'i', 'i', 'i', 'i', 'i',
-        'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',
-        'o', 'o', 'o', 'o', 'o', 'o',
-        'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u',
-        'y', 'y', 'y', 'y', 'y',
-        'd'
-    ];
-
-    $chuoi = str_replace($tim, $thay, $chuoi);
-    $chuoi = preg_replace('/[^a-z0-9]+/', '-', $chuoi);
-
-    return trim((string) $chuoi, '-');
-}
-
-/**
- * Lấy danh mục đang hoạt động.
- */
-$stmtDanhMuc = $pdo->query(
-    'SELECT id, ten_danh_muc
-     FROM danh_muc
-     WHERE trang_thai = 1
-     ORDER BY thu_tu ASC, ten_danh_muc ASC'
-);
-
-$danhSachDanhMuc = $stmtDanhMuc->fetchAll();
-
+// 3. Xử lý lưu form thêm mới
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $danhMucId = (int) ($_POST['danh_muc_id'] ?? 0);
     $tenDacSan = trim($_POST['ten_dac_san'] ?? '');
-    $slug = trim($_POST['slug'] ?? '');
+    $danhMucId = filter_input(INPUT_POST, 'danh_muc_id', FILTER_VALIDATE_INT) ?: null;
     $moTaNgan = trim($_POST['mo_ta_ngan'] ?? '');
-    $nguonGoc = trim($_POST['nguon_goc'] ?? '');
-    $moTaChiTiet = trim($_POST['mo_ta_chi_tiet'] ?? '');
-    $cachSuDung = trim($_POST['cach_su_dung'] ?? '');
-    $cachBaoQuan = trim($_POST['cach_bao_quan'] ?? '');
+    $noiDungChiTiet = trim($_POST['noi_dung_chi_tiet'] ?? '');
     $noiBat = isset($_POST['noi_bat']) ? 1 : 0;
     $trangThai = isset($_POST['trang_thai']) ? 1 : 0;
 
-    if ($danhMucId <= 0) {
-        $loi[] = 'Vui lòng chọn danh mục.';
-    }
-
     if ($tenDacSan === '') {
-        $loi[] = 'Vui lòng nhập tên đặc sản.';
-    }
-
-    if ($slug === '') {
-        $slug = taoSlug($tenDacSan);
+        $loi = 'Vui lòng nhập tên đặc sản.';
     } else {
-        $slug = taoSlug($slug);
-    }
-
-    if ($slug === '') {
-        $loi[] = 'Đường dẫn đặc sản không hợp lệ.';
-    }
-
-    /*
-     * Kiểm tra danh mục có tồn tại không.
-     */
-    if ($danhMucId > 0) {
-        $kiemTraDanhMuc = $pdo->prepare(
-            'SELECT id
-             FROM danh_muc
-             WHERE id = :id
-             LIMIT 1'
-        );
-
-        $kiemTraDanhMuc->execute([
-            'id' => $danhMucId
-        ]);
-
-        if (!$kiemTraDanhMuc->fetch()) {
-            $loi[] = 'Danh mục đã chọn không tồn tại.';
+        $uploadDir = __DIR__ . '/../../assets/uploads/dac-san/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
         }
-    }
 
-    /*
-     * Kiểm tra trùng tên hoặc slug.
-     */
-    if ($tenDacSan !== '' && $slug !== '') {
-        $kiemTraTrung = $pdo->prepare(
-            'SELECT id
-             FROM dac_san
-             WHERE ten_dac_san = :ten_dac_san
-                OR slug = :slug
-             LIMIT 1'
-        );
+        // Tải ảnh đại diện chính
+        $hinhAnhChinh = null;
+        $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 
-        $kiemTraTrung->execute([
-            'ten_dac_san' => $tenDacSan,
-            'slug' => $slug
-        ]);
-
-        if ($kiemTraTrung->fetch()) {
-            $loi[] = 'Tên đặc sản hoặc đường dẫn đã tồn tại.';
-        }
-    }
-
-    /*
-     * Kiểm tra hình ảnh.
-     */
-    $tenHinhAnh = null;
-    $duongDanAnhMoi = null;
-
-    if (
-        isset($_FILES['hinh_anh'])
-        && $_FILES['hinh_anh']['error'] !== UPLOAD_ERR_NO_FILE
-    ) {
-        $file = $_FILES['hinh_anh'];
-
-        if ($file['error'] !== UPLOAD_ERR_OK) {
-            $loi[] = 'Có lỗi xảy ra khi tải hình ảnh.';
-        } elseif ($file['size'] > 5 * 1024 * 1024) {
-            $loi[] = 'Hình ảnh không được vượt quá 5 MB.';
-        } else {
-            $thongTinAnh = getimagesize($file['tmp_name']);
-
-            $loaiAnhChoPhep = [
-                'image/jpeg' => 'jpg',
-                'image/png' => 'png',
-                'image/webp' => 'webp'
-            ];
-
-            $mimeType = $thongTinAnh['mime'] ?? '';
-
-            if (!isset($loaiAnhChoPhep[$mimeType])) {
-                $loi[] = 'Chỉ chấp nhận hình ảnh JPG, PNG hoặc WEBP.';
-            } else {
-                $phanMoRong = $loaiAnhChoPhep[$mimeType];
-
-                $tenHinhAnh = sprintf(
-                    '%s-%s.%s',
-                    $slug,
-                    bin2hex(random_bytes(4)),
-                    $phanMoRong
-                );
-
-                $thuMucUpload = __DIR__
-                    . '/../../assets/uploads/dac-san/';
-
-                if (!is_dir($thuMucUpload)) {
-                    mkdir($thuMucUpload, 0777, true);
-                }
-
-                $duongDanAnhMoi = $thuMucUpload . $tenHinhAnh;
+        if (!empty($_FILES['hinh_anh']['name']) && $_FILES['hinh_anh']['error'] === UPLOAD_ERR_OK) {
+            $ext = strtolower(pathinfo($_FILES['hinh_anh']['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, $allowed, true)) {
+                $hinhAnhChinh = 'main_' . time() . '_' . uniqid() . '.' . $ext;
+                move_uploaded_file($_FILES['hinh_anh']['tmp_name'], $uploadDir . $hinhAnhChinh);
             }
         }
-    }
 
-    if (empty($loi)) {
-        try {
-            /*
-             * Di chuyển ảnh vào thư mục uploads.
-             */
-            if (
-                $tenHinhAnh !== null
-                && $duongDanAnhMoi !== null
-            ) {
-                if (
-                    !move_uploaded_file(
-                        $_FILES['hinh_anh']['tmp_name'],
-                        $duongDanAnhMoi
-                    )
-                ) {
-                    throw new RuntimeException(
-                        'Không thể lưu hình ảnh lên máy chủ.'
-                    );
+        $slug = function_exists('taoSlug') ? taoSlug($tenDacSan) : strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $tenDacSan), '-'));
+
+        // Xây dựng câu lệnh INSERT động theo đúng các cột có trong Database
+        $fields = ['ten_dac_san', 'danh_muc_id', 'hinh_anh', 'noi_bat', 'trang_thai'];
+        $placeholders = [':ten', ':dm_id', ':anh', ':noi_bat', ':trang_thai'];
+        $params = [
+            'ten' => $tenDacSan,
+            'dm_id' => $danhMucId,
+            'anh' => $hinhAnhChinh,
+            'noi_bat' => $noiBat,
+            'trang_thai' => $trangThai
+        ];
+
+        if (in_array('slug', $existingCols, true)) {
+            $fields[] = 'slug';
+            $placeholders[] = ':slug';
+            $params['slug'] = $slug;
+        }
+
+        if (in_array('mo_ta_ngan', $existingCols, true)) {
+            $fields[] = 'mo_ta_ngan';
+            $placeholders[] = ':mo_ta';
+            $params['mo_ta'] = $moTaNgan;
+        }
+
+        // Kiểm tra cột nội dung chi tiết
+        if (in_array('noi_dung_chi_tiet', $existingCols, true)) {
+            $fields[] = 'noi_dung_chi_tiet';
+            $placeholders[] = ':noi_dung';
+            $params['noi_dung'] = $noiDungChiTiet;
+        } elseif (in_array('noi_dung', $existingCols, true)) {
+            $fields[] = 'noi_dung';
+            $placeholders[] = ':noi_dung';
+            $params['noi_dung'] = $noiDungChiTiet;
+        } elseif (in_array('chi_tiet', $existingCols, true)) {
+            $fields[] = 'chi_tiet';
+            $placeholders[] = ':noi_dung';
+            $params['noi_dung'] = $noiDungChiTiet;
+        }
+
+        if (in_array('ngay_tao', $existingCols, true)) {
+            $fields[] = 'ngay_tao';
+            $placeholders[] = 'NOW()';
+        }
+
+        $sql = 'INSERT INTO dac_san (' . implode(', ', $fields) . ') VALUES (' . implode(', ', $placeholders) . ')';
+        $stmtInsert = $pdo->prepare($sql);
+        $stmtInsert->execute($params);
+
+        $dacSanId = (int)$pdo->lastInsertId();
+
+        // Xử lý tải lên nhiều hình ảnh phụ cùng lúc
+        if ($dacSanId > 0 && !empty($_FILES['anh_phu']['name'][0])) {
+            $colName = 'hinh_anh';
+            try {
+                $subCols = $pdo->query('SHOW COLUMNS FROM hinh_anh_dac_san')->fetchAll(PDO::FETCH_COLUMN);
+                if (in_array('duong_dan_anh', $subCols, true)) {
+                    $colName = 'duong_dan_anh';
+                } elseif (in_array('duong_dan', $subCols, true)) {
+                    $colName = 'duong_dan';
+                }
+            } catch (\PDOException $e) {
+                $pdo->exec('CREATE TABLE IF NOT EXISTS hinh_anh_dac_san (id INT AUTO_INCREMENT PRIMARY KEY, dac_san_id INT, hinh_anh VARCHAR(255))');
+            }
+
+            $totalFiles = count($_FILES['anh_phu']['name']);
+            for ($i = 0; $i < $totalFiles; $i++) {
+                if ($_FILES['anh_phu']['error'][$i] === UPLOAD_ERR_OK) {
+                    $ext = strtolower(pathinfo($_FILES['anh_phu']['name'][$i], PATHINFO_EXTENSION));
+                    if (in_array($ext, $allowed, true)) {
+                        $subFileName = 'sub_' . time() . '_' . uniqid() . '.' . $ext;
+                        if (move_uploaded_file($_FILES['anh_phu']['tmp_name'][$i], $uploadDir . $subFileName)) {
+                            try {
+                                $stmtSub = $pdo->prepare("INSERT INTO hinh_anh_dac_san (dac_san_id, {$colName}) VALUES (:dac_san_id, :file_name)");
+                                $stmtSub->execute([
+                                    'dac_san_id' => $dacSanId,
+                                    'file_name' => $subFileName
+                                ]);
+                            } catch (\PDOException $e) {
+                                // Bỏ qua nếu lỗi bảng ảnh
+                            }
+                        }
+                    }
                 }
             }
-
-            $stmt = $pdo->prepare(
-                'INSERT INTO dac_san
-                    (
-                        danh_muc_id,
-                        ten_dac_san,
-                        slug,
-                        mo_ta_ngan,
-                        nguon_goc,
-                        mo_ta_chi_tiet,
-                        cach_su_dung,
-                        cach_bao_quan,
-                        hinh_anh,
-                        noi_bat,
-                        trang_thai
-                    )
-                 VALUES
-                    (
-                        :danh_muc_id,
-                        :ten_dac_san,
-                        :slug,
-                        :mo_ta_ngan,
-                        :nguon_goc,
-                        :mo_ta_chi_tiet,
-                        :cach_su_dung,
-                        :cach_bao_quan,
-                        :hinh_anh,
-                        :noi_bat,
-                        :trang_thai
-                    )'
-            );
-
-            $stmt->execute([
-                'danh_muc_id' => $danhMucId,
-                'ten_dac_san' => $tenDacSan,
-                'slug' => $slug,
-                'mo_ta_ngan' => $moTaNgan !== ''
-                    ? $moTaNgan
-                    : null,
-                'nguon_goc' => $nguonGoc !== ''
-                    ? $nguonGoc
-                    : null,
-                'mo_ta_chi_tiet' => $moTaChiTiet !== ''
-                    ? $moTaChiTiet
-                    : null,
-                'cach_su_dung' => $cachSuDung !== ''
-                    ? $cachSuDung
-                    : null,
-                'cach_bao_quan' => $cachBaoQuan !== ''
-                    ? $cachBaoQuan
-                    : null,
-                'hinh_anh' => $tenHinhAnh,
-                'noi_bat' => $noiBat,
-                'trang_thai' => $trangThai
-            ]);
-
-            $_SESSION['success'] = 'Thêm đặc sản thành công.';
-
-            header('Location: index.php');
-            exit;
-        } catch (Throwable $e) {
-            /*
-             * Nếu lưu database thất bại thì xóa ảnh vừa tải.
-             */
-            if (
-                $duongDanAnhMoi !== null
-                && file_exists($duongDanAnhMoi)
-            ) {
-                unlink($duongDanAnhMoi);
-            }
-
-            $loi[] = 'Không thể thêm đặc sản: ' . $e->getMessage();
         }
+
+        $_SESSION['success'] = 'Thêm mới đặc sản thành công!';
+        header('Location: index.php');
+        exit;
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Thêm đặc sản</title>
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm mới đặc sản - Quản trị Cà Mau</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        #imagePreview {
-            width: 220px;
-            height: 150px;
-            object-fit: cover;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            display: none;
-        }
+        body { background-color: #f4f6f9; }
+        .admin-form-card { max-width: 900px; margin: 30px auto; border: 0; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+        .gallery-upload-box { background-color: #fcf8f8; border: 1px dashed #dc3545; border-radius: 8px; padding: 20px; }
     </style>
 </head>
+<body class="p-3 p-md-4">
 
-<body class="bg-light">
-    <nav class="navbar navbar-dark bg-success">
-        <div class="container">
-            <a
-                class="navbar-brand fw-bold"
-                href="/DuAnNgheCoBan_Nhom1/admin/index.php"
-            >
-                Quản trị đặc sản Cà Mau
-            </a>
-
-            <a
-                href="/DuAnNgheCoBan_Nhom1/logout.php"
-                class="btn btn-outline-light btn-sm"
-            >
-                Đăng xuất
+<div class="card admin-form-card">
+    <div class="card-body p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <div>
+                <h2 class="h4 fw-bold mb-1">Thêm mới đặc sản</h2>
+                <p class="text-muted small mb-0">Thêm thông tin đặc sản và hình ảnh trưng bày chi tiết.</p>
+            </div>
+            <a href="index.php" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Danh sách đặc sản
             </a>
         </div>
-    </nav>
 
-    <main class="container py-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <div
-                    class="d-flex justify-content-between
-                           align-items-center flex-wrap gap-2 mb-4"
-                >
-                    <div>
-                        <h1 class="h3 mb-1">Thêm đặc sản</h1>
+        <?php if ($loi !== ''): ?>
+            <div class="alert alert-danger mb-4"><?= htmlspecialchars($loi) ?></div>
+        <?php endif; ?>
 
-                        <p class="text-muted mb-0">
-                            Nhập thông tin giới thiệu đặc sản Cà Mau.
-                        </p>
-                    </div>
-
-                    <a
-                        href="index.php"
-                        class="btn btn-secondary"
+        <form method="post" enctype="multipart/form-data">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label for="ten_dac_san" class="form-label fw-semibold">Tên đặc sản <span class="text-danger">*</span></label>
+                    <input 
+                        type="text" 
+                        id="ten_dac_san" 
+                        name="ten_dac_san" 
+                        class="form-control" 
+                        value="<?= htmlspecialchars($tenDacSan) ?>" 
+                        placeholder="Ví dụ: Cua biển Năm Căn, Mật ong rừng U Minh..." 
+                        required
                     >
-                        Quay lại danh sách
-                    </a>
                 </div>
 
-                <?php if (!empty($loi)): ?>
-                    <div class="alert alert-danger">
-                        <ul class="mb-0">
-                            <?php foreach ($loi as $noiDungLoi): ?>
-                                <li>
-                                    <?= htmlspecialchars($noiDungLoi) ?>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </div>
-                <?php endif; ?>
+                <div class="col-md-4">
+                    <label for="danh_muc_id" class="form-label fw-semibold">Danh mục</label>
+                    <select id="danh_muc_id" name="danh_muc_id" class="form-select">
+                        <option value="">-- Chọn danh mục --</option>
+                        <?php foreach ($danhSachDanhMuc as $dm): ?>
+                            <option value="<?= (int)$dm['id'] ?>" <?= $danhMucId === (int)$dm['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($dm['ten_danh_muc']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-                <?php if (empty($danhSachDanhMuc)): ?>
-                    <div class="alert alert-warning">
-                        Chưa có danh mục đang hiển thị.
+                <div class="col-12">
+                    <label for="hinh_anh" class="form-label fw-semibold">Ảnh đại diện chính</label>
+                    <input type="file" id="hinh_anh" name="hinh_anh" class="form-control" accept="image/*">
+                </div>
 
-                        <a
-                            href="/DuAnNgheCoBan_Nhom1/admin/danh-muc/create.php"
-                            class="alert-link"
+                <!-- TẢI LÊN NHIỀU ẢNH PHỤ -->
+                <div class="col-12">
+                    <div class="gallery-upload-box">
+                        <label for="anh_phu" class="form-label fw-bold text-danger mb-1">
+                            <i class="bi bi-images me-1"></i> Bộ sưu tập hình ảnh phụ (Tải nhiều ảnh cùng lúc)
+                        </label>
+                        <p class="small text-muted mb-2">Tải thêm các góc chụp thực tế, quy trình sản xuất, đóng gói...</p>
+                        <input 
+                            type="file" 
+                            id="anh_phu" 
+                            name="anh_phu[]" 
+                            class="form-control" 
+                            multiple 
+                            accept="image/*"
                         >
-                            Thêm danh mục trước
-                        </a>
-                    </div>
-                <?php endif; ?>
-
-                <form
-                    method="post"
-                    enctype="multipart/form-data"
-                >
-                    <div class="row g-4">
-                        <div class="col-lg-8">
-                            <div class="mb-3">
-                                <label
-                                    for="ten_dac_san"
-                                    class="form-label"
-                                >
-                                    Tên đặc sản
-                                    <span class="text-danger">*</span>
-                                </label>
-
-                                <input
-                                    type="text"
-                                    id="ten_dac_san"
-                                    name="ten_dac_san"
-                                    class="form-control"
-                                    value="<?= htmlspecialchars($tenDacSan) ?>"
-                                    required
-                                    autofocus
-                                >
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="slug" class="form-label">
-                                    Đường dẫn
-                                </label>
-
-                                <input
-                                    type="text"
-                                    id="slug"
-                                    name="slug"
-                                    class="form-control"
-                                    value="<?= htmlspecialchars($slug) ?>"
-                                    placeholder="Để trống để tự tạo"
-                                >
-
-                                <div class="form-text">
-                                    Ví dụ: cua-ca-mau
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label
-                                    for="mo_ta_ngan"
-                                    class="form-label"
-                                >
-                                    Mô tả ngắn
-                                </label>
-
-                                <textarea
-                                    id="mo_ta_ngan"
-                                    name="mo_ta_ngan"
-                                    class="form-control"
-                                    rows="3"
-                                    maxlength="500"
-                                ><?= htmlspecialchars($moTaNgan) ?></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label
-                                    for="nguon_goc"
-                                    class="form-label"
-                                >
-                                    Nguồn gốc
-                                </label>
-
-                                <textarea
-                                    id="nguon_goc"
-                                    name="nguon_goc"
-                                    class="form-control"
-                                    rows="4"
-                                ><?= htmlspecialchars($nguonGoc) ?></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label
-                                    for="mo_ta_chi_tiet"
-                                    class="form-label"
-                                >
-                                    Nội dung giới thiệu chi tiết
-                                </label>
-
-                                <textarea
-                                    id="mo_ta_chi_tiet"
-                                    name="mo_ta_chi_tiet"
-                                    class="form-control"
-                                    rows="7"
-                                ><?= htmlspecialchars($moTaChiTiet) ?></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label
-                                    for="cach_su_dung"
-                                    class="form-label"
-                                >
-                                    Cách sử dụng
-                                </label>
-
-                                <textarea
-                                    id="cach_su_dung"
-                                    name="cach_su_dung"
-                                    class="form-control"
-                                    rows="4"
-                                ><?= htmlspecialchars($cachSuDung) ?></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label
-                                    for="cach_bao_quan"
-                                    class="form-label"
-                                >
-                                    Cách bảo quản
-                                </label>
-
-                                <textarea
-                                    id="cach_bao_quan"
-                                    name="cach_bao_quan"
-                                    class="form-control"
-                                    rows="4"
-                                ><?= htmlspecialchars($cachBaoQuan) ?></textarea>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-4">
-                            <div class="mb-3">
-                                <label
-                                    for="danh_muc_id"
-                                    class="form-label"
-                                >
-                                    Danh mục
-                                    <span class="text-danger">*</span>
-                                </label>
-
-                                <select
-                                    id="danh_muc_id"
-                                    name="danh_muc_id"
-                                    class="form-select"
-                                    required
-                                >
-                                    <option value="">
-                                        Chọn danh mục
-                                    </option>
-
-                                    <?php foreach (
-                                        $danhSachDanhMuc as $danhMuc
-                                    ): ?>
-                                        <option
-                                            value="<?= (int) $danhMuc['id'] ?>"
-                                            <?= $danhMucId === (int) $danhMuc['id']
-                                                ? 'selected'
-                                                : '' ?>
-                                        >
-                                            <?= htmlspecialchars(
-                                                $danhMuc['ten_danh_muc']
-                                            ) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label
-                                    for="hinh_anh"
-                                    class="form-label"
-                                >
-                                    Hình ảnh đại diện
-                                </label>
-
-                                <input
-                                    type="file"
-                                    id="hinh_anh"
-                                    name="hinh_anh"
-                                    class="form-control"
-                                    accept=".jpg,.jpeg,.png,.webp"
-                                >
-
-                                <div class="form-text">
-                                    JPG, PNG hoặc WEBP, tối đa 5 MB.
-                                </div>
-                            </div>
-
-                            <img
-                                id="imagePreview"
-                                src=""
-                                alt="Xem trước hình ảnh"
-                                class="mb-4"
-                            >
-
-                            <div class="form-check mb-3">
-                                <input
-                                    type="checkbox"
-                                    id="noi_bat"
-                                    name="noi_bat"
-                                    class="form-check-input"
-                                    <?= $noiBat === 1 ? 'checked' : '' ?>
-                                >
-
-                                <label
-                                    for="noi_bat"
-                                    class="form-check-label"
-                                >
-                                    Đặc sản nổi bật
-                                </label>
-                            </div>
-
-                            <div class="form-check mb-4">
-                                <input
-                                    type="checkbox"
-                                    id="trang_thai"
-                                    name="trang_thai"
-                                    class="form-check-input"
-                                    <?= $trangThai === 1 ? 'checked' : '' ?>
-                                >
-
-                                <label
-                                    for="trang_thai"
-                                    class="form-check-label"
-                                >
-                                    Hiển thị trên website
-                                </label>
-                            </div>
-
-                            <button
-                                type="submit"
-                                class="btn btn-success w-100"
-                                <?= empty($danhSachDanhMuc)
-                                    ? 'disabled'
-                                    : '' ?>
-                            >
-                                Lưu đặc sản
-                            </button>
+                        <div class="form-text mt-2 text-dark">
+                            <i class="bi bi-info-circle me-1"></i> Giữ phím <strong>Ctrl</strong> khi chọn file để chọn nhiều ảnh cùng lúc.
                         </div>
                     </div>
-                </form>
+                </div>
+
+                <div class="col-12">
+                    <label for="mo_ta_ngan" class="form-label fw-semibold">Mô tả tóm tắt ngắn</label>
+                    <textarea id="mo_ta_ngan" name="mo_ta_ngan" class="form-control" rows="3"><?= htmlspecialchars($moTaNgan) ?></textarea>
+                </div>
+
+                <div class="col-12">
+                    <label for="noi_dung_chi_tiet" class="form-label fw-semibold">Nội dung giới thiệu chi tiết</label>
+                    <textarea id="noi_dung_chi_tiet" name="noi_dung_chi_tiet" class="form-control" rows="6"><?= htmlspecialchars($noiDungChiTiet) ?></textarea>
+                </div>
+
+                <div class="col-12">
+                    <div class="d-flex gap-4 p-3 bg-light rounded border">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="noi_bat" value="1" id="noi_bat" <?= $noiBat === 1 ? 'checked' : '' ?>>
+                            <label class="form-check-label fw-semibold" for="noi_bat">Đặc sản nổi bật</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="trang_thai" value="1" id="trang_thai" <?= $trangThai === 1 ? 'checked' : '' ?>>
+                            <label class="form-check-label fw-semibold" for="trang_thai">Hiển thị công khai ra website</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 text-end mt-4">
+                    <a href="index.php" class="btn btn-secondary px-3 me-2">Hủy</a>
+                    <button type="submit" class="btn btn-success px-4 fw-semibold">
+                        <i class="bi bi-plus-circle me-1"></i> Lưu và Thêm đặc sản
+                    </button>
+                </div>
             </div>
-        </div>
-    </main>
+        </form>
+    </div>
+</div>
 
-    <script>
-        const imageInput = document.getElementById('hinh_anh');
-        const imagePreview = document.getElementById('imagePreview');
-
-        imageInput.addEventListener('change', function () {
-            const file = this.files[0];
-
-            if (!file) {
-                imagePreview.src = '';
-                imagePreview.style.display = 'none';
-                return;
-            }
-
-            imagePreview.src = URL.createObjectURL(file);
-            imagePreview.style.display = 'block';
-        });
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

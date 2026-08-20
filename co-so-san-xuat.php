@@ -116,25 +116,35 @@ require_once __DIR__ . '/includes/navbar.php';
 
 <style>
     .facility-banner {
-        padding: 70px 0;
-        color: #ffffff;
+        padding: 75px 0;
         text-align: center;
         background:
             linear-gradient(
-                rgba(20, 77, 54, 0.85),
-                rgba(20, 77, 54, 0.85)
+                rgba(10, 40, 28, 0.78),
+                rgba(10, 40, 28, 0.78)
             ),
             url("<?= htmlspecialchars($baseUrl) ?>/assets/images/banner-ca-mau.jpg")
             center / cover no-repeat;
+    }
+
+    .facility-banner h1 {
+        color: #ffffff !important;
+        font-weight: 800;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    }
+
+    .facility-banner p {
+        color: #f1f8f4 !important;
+        font-size: 1.15rem;
+        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+        opacity: 0.95;
     }
 
     .facility-card {
         overflow: hidden;
         border: 0;
         border-radius: 14px;
-        transition:
-            transform 0.25s ease,
-            box-shadow 0.25s ease;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
 
     .facility-card:hover {

@@ -4,24 +4,102 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../includes/functions.php';
 
-$thongBao = $_SESSION['success'] ?? '';
-$loi = $_SESSION['error'] ?? '';
-unset($_SESSION['success'], $_SESSION['error']);
+$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+if (!$id) {
+    $_SESSION['error'] = 'Mã danh mục không hợp lệ.';
+    header('Location: index.php');
+    exit;
+}
 
-$stmt = $pdo->query(
-    'SELECT id, ten_danh_muc, slug, thu_tu, trang_thai, ngay_tao
-     FROM danh_muc
-     ORDER BY thu_tu ASC, id DESC'
-);
-$danhMuc = $stmt->fetchAll();
+// 1. Lấy thông tin danh mục hiện tại
+$stmt = $pdo->prepare('SELECT * FROM danh_muc WHERE id = :id LIMIT 1');
+$stmt->execute(['id' => $id]);
+$danhMuc = $stmt->fetch();
+
+if (!$danhMuc) {
+    $_SESSION['error'] = 'Không tìm thấy danh mục cần sửa.';
+    header('Location: index.php');
+    exit;
+}
+
+$loi = [];
+$tenDanhMuc = $danhMuc['ten_danh_muc'];
+$slug = $danhMuc['slug'];
+$moTa = $danhMuc['mo_ta'] ?? '';
+$thuTu = (int)$danhMuc['thu_tu'];
+$trangThai = (int)$danhMuc['trang_thai'];
+
+// 2. Xử lý lưu form cập nhật
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $tenDanhMuc = trim($_POST['ten_danh_muc'] ?? '');
+    $slug = trim($_POST['slug'] ?? '');
+    $moTa = trim($_POST['mo_ta'] ?? '');
+    $thuTu = (int)($_POST['thu_tu'] ?? 0);
+    $trangThai = isset($_POST['trang_thai']) ? 1 : 0;
+
+    if ($tenDanhMuc === '') {
+        $loi[] = 'Vui lòng nhập tên danh mục.';
+    }
+
+    if ($slug === '') {
+        $slug = function_exists('taoSlug') ? taoSlug($tenDanhMuc) : strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $tenDanhMuc), '-'));
+    } else {
+        $slug = function_exists('taoSlug') ? taoSlug($slug) : strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $slug), '-'));
+    }
+
+    if ($slug === '') {
+        $loi[] = 'Đường dẫn danh mục không hợp lệ.';
+    }
+
+    // Kiểm tra trùng lặp tên hoặc slug với các danh mục khác
+    $kiemTra = $pdo->prepare('SELECT id FROM danh_muc WHERE (ten_danh_muc = :ten OR slug = :slug) AND id <> :id LIMIT 1');
+    $kiemTra->execute([
+        'ten' => $tenDanhMuc,
+        'slug' => $slug,
+        'id' => $id
+    ]);
+
+    if ($kiemTra->fetch()) {
+        $loi[] = 'Tên danh mục hoặc đường dẫn đã tồn tại trên hệ thống.';
+    }
+
+    if (empty($loi)) {
+        try {
+            $update = $pdo->prepare('
+                UPDATE danh_muc 
+                SET ten_danh_muc = :ten, 
+                    slug = :slug, 
+                    mo_ta = :mo_ta, 
+                    thu_tu = :thu_tu, 
+                    trang_thai = :trang_thai 
+                WHERE id = :id
+            ');
+            $update->execute([
+                'ten' => $tenDanhMuc,
+                'slug' => $slug,
+                'mo_ta' => $moTa !== '' ? $moTa : null,
+                'thu_tu' => $thuTu,
+                'trang_thai' => $trangThai,
+                'id' => $id
+            ]);
+
+            $_SESSION['success'] = 'Cập nhật danh mục thành công!';
+            header('Location: index.php');
+            exit;
+        } catch (PDOException $e) {
+            $loi[] = 'Không thể cập nhật danh mục: ' . $e->getMessage();
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý danh mục - Quản trị Cà Mau</title>
+    <title>Chỉnh sửa danh mục - Quản trị Cà Mau</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
@@ -50,7 +128,6 @@ $danhMuc = $stmt->fetchAll();
         .admin-card { border: 0; border-radius: 12px; background: var(--admin-card-bg); box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
         .btn-burgundy { background-color: var(--admin-red) !important; border-color: var(--admin-red) !important; color: #fff !important; }
         .btn-burgundy:hover { background-color: var(--admin-red-hover) !important; border-color: var(--admin-red-hover) !important; }
-        .table thead th { background-color: #faf6f6; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #555; border-bottom: 2px solid var(--admin-border); }
         @media (max-width: 991.98px) { .admin-sidebar { transform: translateX(-100%); } .admin-sidebar.show-sidebar { transform: translateX(0); } .admin-main-wrapper { margin-left: 0; } }
     </style>
 </head>
@@ -70,7 +147,7 @@ $danhMuc = $stmt->fetchAll();
         <li class="nav-item"><a href="/DuAnNgheCoBan_Nhom1/admin/bai-viet/" class="nav-link"><i class="bi bi-journal-text"></i> Quản lý bài viết</a></li>
         <li class="nav-item"><a href="/DuAnNgheCoBan_Nhom1/admin/lien-he/" class="nav-link"><i class="bi bi-envelope-fill"></i> Quản lý liên hệ</a></li>
         <li class="menu-header">Hệ thống</li>
-        <li class="nav-item"><a href="/DuAnNgheCoBan_Nhom1/" target="_blank" class="nav-link"><i class="bi bi-box-arrow-up-right"></i> Xem trang chủ</a></li>
+        <li class="nav-item"><a href="/DuAnNgheCoBan_Nhom1/" class="nav-link"><i class="bi bi-box-arrow-up-right"></i> Xem trang chủ</a></li>
         <li class="nav-item"><a href="/DuAnNgheCoBan_Nhom1/logout.php" class="nav-link text-danger-emphasis"><i class="bi bi-box-arrow-left"></i> Đăng xuất</a></li>
     </ul>
 </aside>
@@ -90,59 +167,98 @@ $danhMuc = $stmt->fetchAll();
     <main class="admin-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="h3 fw-bold mb-1">Quản lý danh mục</h1>
-                <p class="text-muted mb-0">Quản lý các nhóm phân loại đặc sản trên website.</p>
+                <h1 class="h3 fw-bold mb-1">Chỉnh sửa danh mục</h1>
+                <p class="text-muted mb-0">Cập nhật thông tin phân loại đặc sản trên hệ thống.</p>
             </div>
-            <a href="create.php" class="btn btn-burgundy"><i class="bi bi-plus-lg me-1"></i> Thêm danh mục</a>
+            <a href="index.php" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Danh sách danh mục
+            </a>
         </div>
 
-        <?php if ($thongBao !== ''): ?><div class="alert alert-success"><?= htmlspecialchars($thongBao) ?></div><?php endif; ?>
-        <?php if ($loi !== ''): ?><div class="alert alert-danger"><?= htmlspecialchars($loi) ?></div><?php endif; ?>
+        <?php if (!empty($loi)): ?>
+            <div class="alert alert-danger mb-4">
+                <ul class="mb-0 ps-3">
+                    <?php foreach ($loi as $itemLoi): ?>
+                        <li><?= htmlspecialchars($itemLoi) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
 
-        <div class="card admin-card">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th class="ps-4" style="width: 70px;">STT</th>
-                                <th>Tên danh mục</th>
-                                <th>Đường dẫn</th>
-                                <th style="width: 100px;">Thứ tự</th>
-                                <th style="width: 130px;">Trạng thái</th>
-                                <th class="text-end pe-4" style="width: 180px;">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($danhMuc)): ?>
-                                <tr><td colspan="6" class="text-center text-muted py-4">Chưa có danh mục nào.</td></tr>
-                            <?php else: ?>
-                                <?php foreach ($danhMuc as $index => $item): ?>
-                                    <tr>
-                                        <td class="ps-4 text-muted"><?= $index + 1 ?></td>
-                                        <td class="fw-semibold text-dark"><?= htmlspecialchars($item['ten_danh_muc']) ?></td>
-                                        <td><code><?= htmlspecialchars($item['slug']) ?></code></td>
-                                        <td><?= (int) $item['thu_tu'] ?></td>
-                                        <td>
-                                            <?php if ((int) $item['trang_thai'] === 1): ?>
-                                                <span class="badge bg-success">Hiển thị</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-secondary">Đang ẩn</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <a href="edit.php?id=<?= (int) $item['id'] ?>" class="btn btn-warning btn-sm me-1">Sửa</a>
-                                            <form action="delete.php" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa danh mục này?');">
-                                                <input type="hidden" name="id" value="<?= (int) $item['id'] ?>">
-                                                <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
+        <div class="card admin-card" style="max-width: 800px;">
+            <div class="card-body p-4 p-md-5">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="ten_danh_muc" class="form-label fw-semibold">Tên danh mục <span class="text-danger">*</span></label>
+                        <input 
+                            type="text" 
+                            id="ten_danh_muc" 
+                            name="ten_danh_muc" 
+                            class="form-control" 
+                            value="<?= htmlspecialchars($tenDanhMuc) ?>" 
+                            placeholder="Ví dụ: Thủy hải sản, Mắm & món truyền thống..." 
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="slug" class="form-label fw-semibold">Đường dẫn (Slug)</label>
+                        <input 
+                            type="text" 
+                            id="slug" 
+                            name="slug" 
+                            class="form-control" 
+                            value="<?= htmlspecialchars($slug) ?>" 
+                            placeholder="Để trống để tự động tạo slug chuẩn SEO"
+                        >
+                        <div class="form-text">Ví dụ: thuy-hai-san, san-vat-u-minh</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="mo_ta" class="form-label fw-semibold">Mô tả danh mục</label>
+                        <textarea 
+                            id="mo_ta" 
+                            name="mo_ta" 
+                            class="form-control" 
+                            rows="3" 
+                            placeholder="Tóm tắt giới thiệu về nhóm danh mục này..."
+                        ><?= htmlspecialchars($moTa) ?></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="thu_tu" class="form-label fw-semibold">Thứ tự hiển thị</label>
+                        <input 
+                            type="number" 
+                            id="thu_tu" 
+                            name="thu_tu" 
+                            class="form-control" 
+                            value="<?= $thuTu ?>" 
+                            min="0" 
+                            style="max-width: 160px;"
+                        >
+                    </div>
+
+                    <div class="form-check mb-4 p-3 bg-light rounded border">
+                        <input 
+                            class="form-check-input ms-0 me-2" 
+                            type="checkbox" 
+                            id="trang_thai" 
+                            name="trang_thai" 
+                            value="1" 
+                            <?= $trangThai === 1 ? 'checked' : '' ?>
+                        >
+                        <label class="form-check-label fw-semibold" for="trang_thai">
+                            Hiển thị công khai ra ngoài website
+                        </label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-burgundy px-4 fw-semibold">
+                            <i class="bi bi-save me-1"></i> Lưu thay đổi
+                        </button>
+                        <a href="index.php" class="btn btn-secondary px-3">Hủy</a>
+                    </div>
+                </form>
             </div>
         </div>
     </main>

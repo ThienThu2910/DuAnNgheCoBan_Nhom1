@@ -1,57 +1,17 @@
 <footer class="site-footer">
     <div class="container text-center">
-        <h5>Website giới thiệu đặc sản Cà Mau</h5>
-
-        <p class="mb-1">
+        <h5 class="fw-bold mb-2">Website giới thiệu đặc sản Cà Mau</h5>
+        <p class="mb-1 text-white-50">
             Giới thiệu văn hóa, ẩm thực và sản vật đặc trưng của vùng đất Cà Mau.
         </p>
-
-        <p class="mb-0">
-            &copy; <?= date('Y') ?> Nhóm AltF4
+        <p class="mb-0 text-white-50 small">
+            &copy; <?= date('Y') ?> Nhóm 1 - AltF4
         </p>
     </div>
 </footer>
 
-<script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-></script>
+<div id="scrollProgressBar"></div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-
-    /* =====================================================
-       SCROLL REVEAL — GIỮ HIỆU ỨNG GIAO DIỆN
-    ===================================================== */
-    const revealItems = document.querySelectorAll(
-        '.home-section, .specialty-card, .facility-card, .article-card, .map-callout, .detail-banner, .article-header, .contact-banner, .facility-banner, .specialty-banner, .map-banner'
-    );
-
-    if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('cm-show');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, {
-            threshold: 0.10,
-            rootMargin: '0px 0px -60px 0px'
-        });
-
-        revealItems.forEach(function (item) {
-            item.classList.add('cm-reveal');
-            observer.observe(item);
-        });
-    } else {
-        revealItems.forEach(function (item) {
-            item.classList.add('cm-show');
-        });
-    }
-
-});
-</script>
-<!-- BACK TO TOP -->
 <button
     type="button"
     id="backToTop"
@@ -59,35 +19,70 @@ document.addEventListener('DOMContentLoaded', function () {
     aria-label="Lên đầu trang"
     title="Lên đầu trang"
 >
-    ↑
+    &uarr;
 </button>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const backToTop = document.getElementById('backToTop');
-
-    if (!backToTop) return;
-
-    function toggleBackToTop() {
-        if (window.scrollY > 350) {
-            backToTop.classList.add('show');
-        } else {
-            backToTop.classList.remove('show');
+    const progressBar = document.getElementById('scrollProgressBar');
+    window.addEventListener('scroll', function () {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        if (scrollHeight > 0 && progressBar) {
+            const scrollPercentage = (scrollTop / scrollHeight) * 100;
+            progressBar.style.width = scrollPercentage + '%';
         }
+    }, { passive: true });
+
+    const targets = document.querySelectorAll(`
+        .home-section,
+        .specialty-card,
+        .facility-card,
+        .article-card,
+        .story-slider-container,
+        .story-box-premium,
+        .contact-card
+    `);
+
+    targets.forEach(el => {
+        el.classList.add('cm-reveal');
+    });
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('cm-show');
+                } else {
+                    entry.target.classList.remove('cm-show');
+                }
+            });
+        }, {
+            threshold: 0.15,
+            rootMargin: '0px 0px -40px 0px'
+        });
+
+        targets.forEach(el => observer.observe(el));
     }
 
-    window.addEventListener('scroll', toggleBackToTop, {
-        passive: true
-    });
+    /* 3. NÚT BACK TO TOP */
+    const backToTopBtn = document.getElementById('backToTop');
+    if (backToTopBtn) {
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > 280) {
+                backToTopBtn.classList.add('show');
+            } else {
+                backToTopBtn.classList.remove('show');
+            }
+        }, { passive: true });
 
-    backToTop.addEventListener('click', function () {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
+        backToTopBtn.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-    });
-
-    toggleBackToTop();
+    }
 
 });
 </script>
